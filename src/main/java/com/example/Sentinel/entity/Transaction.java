@@ -10,8 +10,8 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long transactionId;
-    @ManyToOne(fetch = FetchType.LAZY,cascade = CascadeType.ALL,optional = false)
-    @JoinColumn(name="users_id",unique = true,nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY,optional = false)
+    @JoinColumn(name="users_id",nullable = false)
     @JsonIgnore
     private Users users;
     private Double amount;
