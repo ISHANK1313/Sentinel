@@ -15,7 +15,6 @@ public class RiskAssessment {
     @JsonIgnore
     private Transaction transaction;
 
-
     private Long locationScore;
     private Long amountScore;
     private Long timeScore;
