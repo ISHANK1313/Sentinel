@@ -14,5 +14,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class TransactionController {
     @Autowired
     private TransactionService transactionService;
+    @PostMapping("/check")
+    public ResponseEntity<?>postTransaction(MoneyTransferDto moneyTransferDto){
 
+     }
 }

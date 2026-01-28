@@ -19,6 +19,33 @@ public class Transaction {
     private String userLocation;
     private LocalDateTime timeOfTransaction;
     private String status;
+    private String merchantCategoryCode;
+    private boolean crossBorder;
+    private String deviceFingerPrint;
+
+    public String getMerchantCategoryCode() {
+        return merchantCategoryCode;
+    }
+
+    public void setMerchantCategoryCode(String merchantCategoryCode) {
+        this.merchantCategoryCode = merchantCategoryCode;
+    }
+
+    public boolean isCrossBorder() {
+        return crossBorder;
+    }
+
+    public void setCrossBorder(boolean crossBorder) {
+        this.crossBorder = crossBorder;
+    }
+
+    public String getDeviceFingerPrint() {
+        return deviceFingerPrint;
+    }
+
+    public void setDeviceFingerPrint(String deviceFingerPrint) {
+        this.deviceFingerPrint = deviceFingerPrint;
+    }
 
     public Users getUsers() {
         return users;

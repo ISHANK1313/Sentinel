@@ -1,9 +1,6 @@
 package com.example.Sentinel.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
@@ -25,6 +22,39 @@ public class MoneyTransferDto {
     @NotNull(message="user_ID can not be null")
     @NotBlank(message ="user_ID can not be blank")
     private Long userId;
+    @NotNull(message=" merchantCategoryCode can not be null")
+    @NotBlank(message =" merchantCategoryCode can not be blank")
+    private String merchantCategoryCode;
+
+    @NotEmpty(message = "cross-border info required")
+    private boolean crossBorder;
+    @NotNull(message="deviceFingerPrint can not be null")
+    @NotBlank(message ="deviceFingerPrint can not be blank")
+    private String deviceFingerPrint;
+
+    public String getMerchantCategoryCode() {
+        return merchantCategoryCode;
+    }
+
+    public void setMerchantCategoryCode(String merchantCategoryCode) {
+        this.merchantCategoryCode = merchantCategoryCode;
+    }
+
+    public boolean isCrossBorder() {
+        return crossBorder;
+    }
+
+    public void setCrossBorder(boolean crossBorder) {
+        this.crossBorder = crossBorder;
+    }
+
+    public String getDeviceFingerPrint() {
+        return deviceFingerPrint;
+    }
+
+    public void setDeviceFingerPrint(String deviceFingerPrint) {
+        this.deviceFingerPrint = deviceFingerPrint;
+    }
 
     public Double getAmount() {
         return amount;

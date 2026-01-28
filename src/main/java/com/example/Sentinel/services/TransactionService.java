@@ -30,6 +30,9 @@ public class TransactionService {
             t.setUserLocation(moneyTransferDto.getLocationOfUser());
             Optional<Users> u=usersRepo.findById(moneyTransferDto.getUserId());
             t.setUsers(u.get());
+            t.setMerchantCategoryCode(moneyTransferDto.getMerchantCategoryCode());
+            t.setDeviceFingerPrint(moneyTransferDto.getDeviceFingerPrint());
+            t.setCrossBorder(moneyTransferDto.isCrossBorder());
             transactionReo.save(t);
           return true;
         }
