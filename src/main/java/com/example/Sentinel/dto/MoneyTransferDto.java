@@ -6,32 +6,35 @@ import java.time.LocalDateTime;
 
 public class MoneyTransferDto {
     @NotNull(message="amount can not be null")
-    @NotBlank(message ="amount can not be blank")
     @Positive(message="amount must be positive value")
     private Double amount;
+
     @NotNull(message="Location can not be null")
     @NotBlank(message ="Location can not be blank")
     private String locationOfUser;
+
     @NotNull(message="time can not be null")
-    @NotBlank(message ="time can not be blank")
     @PastOrPresent(message = "Time cannot be future")
     private LocalDateTime timeOfPayment;
+
     @NotNull(message="merchant_ID can not be null")
-    @NotBlank(message ="merchant_ID can not be blank")
     private Long merchantId;
+
     @NotNull(message="user_ID can not be null")
-    @NotBlank(message ="user_ID can not be blank")
     private Long userId;
-    @NotNull(message=" merchantCategoryCode can not be null")
-    @NotBlank(message =" merchantCategoryCode can not be blank")
+
+    @NotNull(message="merchantCategoryCode can not be null")
+    @NotBlank(message ="merchantCategoryCode can not be blank")
     private String merchantCategoryCode;
 
-    @NotEmpty(message = "cross-border info required")
-    private boolean crossBorder;
+    @NotNull(message="cross-border info required")
+    private Boolean crossBorder;
+
     @NotNull(message="deviceFingerPrint can not be null")
     @NotBlank(message ="deviceFingerPrint can not be blank")
     private String deviceFingerPrint;
 
+    // Getters and setters
     public String getMerchantCategoryCode() {
         return merchantCategoryCode;
     }
@@ -40,11 +43,11 @@ public class MoneyTransferDto {
         this.merchantCategoryCode = merchantCategoryCode;
     }
 
-    public boolean isCrossBorder() {
+    public Boolean isCrossBorder() {
         return crossBorder;
     }
 
-    public void setCrossBorder(boolean crossBorder) {
+    public void setCrossBorder(Boolean crossBorder) {
         this.crossBorder = crossBorder;
     }
 
@@ -96,3 +99,4 @@ public class MoneyTransferDto {
         this.userId = userId;
     }
 }
+

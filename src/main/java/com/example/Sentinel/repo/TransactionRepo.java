@@ -10,7 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface TransactionRepo extends JpaRepository<Transaction,Long> {
-    Optional<List<Transaction>>findByUsersIdAndTimeOfTransactionAfter(Long userId, LocalDateTime thirtyDaysAgo);
-    Optional<List<Transaction>> findByUsersId(Long aLong);
-    Optional<List<Transaction>> findTop10ByUserIdOrderByTimeOfTransactionDesc(Long userId);
+    Optional<List<Transaction>> findByUsers_UserIdAndTimeOfTransactionAfter(Long userId, LocalDateTime thirtyDaysAgo);
+    Optional<List<Transaction>> findByUsers_UserId(Long userId);
+    List<Transaction> findTop10ByUsers_UserIdOrderByTimeOfTransactionDesc(Long userId);
+    Long countByUsers_UserIdAndMerchantId(Long userId, Long merchantId);
+
 }

@@ -8,5 +8,5 @@ import java.util.Optional;
 
 @Repository
 public interface RiskAssessmentRepo extends JpaRepository<RiskAssessment,Long> {
-    Optional<RiskAssessment> findByTransactionId(Long aLong);
+    Optional<RiskAssessment> findByTransaction_TransactionId(Long aLong);
 }
