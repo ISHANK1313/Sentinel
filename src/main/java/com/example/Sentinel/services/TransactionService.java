@@ -4,7 +4,7 @@ import com.example.Sentinel.dto.MoneyTransferDto;
 import com.example.Sentinel.entity.Transaction;
 
 import com.example.Sentinel.entity.Users;
-import com.example.Sentinel.repo.TransactionReo;
+import com.example.Sentinel.repo.TransactionRepo;
 import com.example.Sentinel.repo.UsersRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,7 +18,7 @@ public class TransactionService {
     @Autowired
     private UsersRepo usersRepo;
     @Autowired
-    private TransactionReo transactionReo;
+    private TransactionRepo transactionRepo;
     @Transactional
     public boolean storeTransaction(MoneyTransferDto moneyTransferDto) {
         if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
@@ -33,7 +33,7 @@ public class TransactionService {
             t.setMerchantCategoryCode(moneyTransferDto.getMerchantCategoryCode());
             t.setDeviceFingerPrint(moneyTransferDto.getDeviceFingerPrint());
             t.setCrossBorder(moneyTransferDto.isCrossBorder());
-            transactionReo.save(t);
+            transactionRepo.save(t);
           return true;
         }
         return false;

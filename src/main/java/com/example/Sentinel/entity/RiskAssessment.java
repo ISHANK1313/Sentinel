@@ -21,9 +21,36 @@ public class RiskAssessment {
     private Long velocityScore;
     private Long merchantScore;
     private Long sequenceScore;
+    private Long merchantCategoryScore;
+    private Long CrossBorderScore;
+    private Long deviceFingerPrintScore;
     private Double overallScore;
     @ElementCollection
     private List<String> triggeredRules;
+
+    public Long getMerchantCategoryScore() {
+        return merchantCategoryScore;
+    }
+
+    public void setMerchantCategoryScore(Long merchantCategoryScore) {
+        this.merchantCategoryScore = merchantCategoryScore;
+    }
+
+    public Long getCrossBorderScore() {
+        return CrossBorderScore;
+    }
+
+    public void setCrossBorderScore(Long crossBorderScore) {
+        CrossBorderScore = crossBorderScore;
+    }
+
+    public Long getDeviceFingerPrintScore() {
+        return deviceFingerPrintScore;
+    }
+
+    public void setDeviceFingerPrintScore(Long deviceFingerPrintScore) {
+        this.deviceFingerPrintScore = deviceFingerPrintScore;
+    }
 
     public Long getId() {
         return id;

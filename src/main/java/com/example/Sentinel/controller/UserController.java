@@ -34,6 +34,13 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("unable to create user currently please try again");
         }
     }
+    @GetMapping("/userdetails")
+    public ResponseEntity<?> getUserDetail(@RequestParam Long user_id){
+        if(usersRepo.existsById(user_id)){
+            return ResponseEntity.ok().body(usersRepo.findById(user_id));
+        }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user does not exists");
 
+    }
 
 }
