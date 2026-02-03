@@ -38,6 +38,6 @@ public class TimeOfTransactionRule {
         }
         int currentHour = currTime.getHour();
         int currentHourCount = hourlyCount.get(currentHour);
-        return (currentHourCount/totalTransactions)*100;
+        return (currentHourCount*100)/totalTransactions;
     }
 }

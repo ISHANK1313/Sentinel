@@ -36,7 +36,7 @@ public class MerchantCategoryCodeRule {
                 freq++;
             }
         }
-        return (freq/ previousTransaction.size())*100;
+        return (freq*100)/ previousTransaction.size();
     }
 
 }

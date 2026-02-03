@@ -32,7 +32,7 @@ public class AmountRule {
               freq++;
           }
           Long stdSum=0L;
-          Long avg=(long)(sum/freq);
+          Double avg=(sum/freq);
           for(int i=0;i<lastTransactions.size();i++){
               stdSum+=(long)((lastTransactions.get(i).getAmount()-avg)*(lastTransactions.get(i).getAmount()-avg));
 
