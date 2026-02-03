@@ -31,13 +31,13 @@ public class AmountRule {
               sum+= lastTransactions.get(i).getAmount();
               freq++;
           }
-          Long stdSum=0L;
+          Double stdSum=0.0;
           Double avg=(sum/freq);
           for(int i=0;i<lastTransactions.size();i++){
-              stdSum+=(long)((lastTransactions.get(i).getAmount()-avg)*(lastTransactions.get(i).getAmount()-avg));
+              stdSum+=Math.pow(lastTransactions.get(i).getAmount() - avg, 2);
 
           }
-          Double std=(double)(stdSum/freq);
+          Double std=Math.sqrt(stdSum / freq);
           return (currAmount-avg)/std;
       }
 

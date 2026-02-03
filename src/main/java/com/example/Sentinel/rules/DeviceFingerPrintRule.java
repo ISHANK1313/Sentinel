@@ -24,6 +24,6 @@ public class DeviceFingerPrintRule {
                 freq++;
             }
         }
-        return (freq*100)/ previousTransaction.size();
+        return (int)Math.round((freq*100.0)/ previousTransaction.size());
     }
 }

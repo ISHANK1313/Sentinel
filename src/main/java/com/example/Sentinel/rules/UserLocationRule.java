@@ -27,6 +27,6 @@ public class UserLocationRule {
                 freq++;
             }
         }
-        return (freq*100)/ transactions.size();
+        return (int) Math.round((freq * 100.0) / transactions.size());
     }
 }
