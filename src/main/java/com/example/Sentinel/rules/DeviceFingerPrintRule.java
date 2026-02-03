@@ -20,10 +20,10 @@ public class DeviceFingerPrintRule {
     private int score(List<Transaction> previousTransaction, String currDevice){
         int freq=0;
         for(int i=0;i< previousTransaction.size();i++){
-            if(previousTransaction.get(i).getDeviceFingerPrint()==currDevice){
+            if(previousTransaction.get(i).getDeviceFingerPrint().equalsIgnoreCase(currDevice)){
                 freq++;
             }
         }
-        return (previousTransaction.size()/freq)*100;
+        return (freq/ previousTransaction.size())*100;
     }
 }

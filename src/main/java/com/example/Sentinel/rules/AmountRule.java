@@ -37,8 +37,8 @@ public class AmountRule {
               stdSum+=(long)((lastTransactions.get(i).getAmount()-avg)*(lastTransactions.get(i).getAmount()-avg));
 
           }
-          Long std=stdSum/freq;
-          return (avg-currAmount)/std;
+          Double std=(double)(stdSum/freq);
+          return (currAmount-avg)/std;
       }
 
 }

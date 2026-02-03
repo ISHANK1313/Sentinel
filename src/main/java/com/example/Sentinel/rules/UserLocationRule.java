@@ -23,10 +23,10 @@ public class UserLocationRule {
     private int score(List<Transaction>transactions,String currLocation){
         int freq=0;
         for(int i=0;i< transactions.size();i++){
-            if(transactions.get(i).getUserLocation()==currLocation){
+            if(transactions.get(i).getUserLocation().equalsIgnoreCase(currLocation)){
                 freq++;
             }
         }
-        return (transactions.size()/freq)*100;
+        return (freq/ transactions.size())*100;
     }
 }

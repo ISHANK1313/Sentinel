@@ -17,13 +17,13 @@ public class MerchantCategoryCodeRule {
          else if(percentage>60){
              return 5L;
          }
-         else if(registry.getRiskLevel(currentMerchantCode)=="LOW"){
+         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("LOW")){
              return 5L;
          }
-         else if(registry.getRiskLevel(currentMerchantCode)=="MEDIUM"){
+         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("MEDIUM")){
              return 15L;
          }
-         else if(registry.getRiskLevel(currentMerchantCode)=="HIGH"){
+         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("HIGH")){
              return 30L;
          }
          return 10L;
@@ -36,7 +36,7 @@ public class MerchantCategoryCodeRule {
                 freq++;
             }
         }
-        return (previousTransaction.size()/freq)*100;
+        return (freq/ previousTransaction.size())*100;
     }
 
 }
