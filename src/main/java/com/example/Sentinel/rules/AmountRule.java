@@ -7,7 +7,7 @@ import java.util.List;
 
 public class AmountRule {
       public Long calculateScore(List<Transaction>transactions,Double currentAmount){
-          if(transactions.size()<5) {
+          if(transactions==null||transactions.size()<5) {
               return 5L;
           }
           Double z= score(transactions, currentAmount);
@@ -24,7 +24,7 @@ public class AmountRule {
     return 40L;
       }
 
-    public Double score(List<Transaction> lastTransactions, Double currAmount){
+    private Double score(List<Transaction> lastTransactions, Double currAmount){
           Double sum=0.0;
           Integer freq=0;
           for(int i=0;i< lastTransactions.size();i++){
