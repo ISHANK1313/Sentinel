@@ -24,8 +24,7 @@ public class MoneyTransferDto {
     private Long userId;
 
     @NotNull(message="merchantCategoryCode can not be null")
-    @NotBlank(message ="merchantCategoryCode can not be blank")
-    private String merchantCategoryCode;
+    private Integer merchantCategoryCode;
 
     @NotNull(message="cross-border info required")
     private Boolean crossBorder;
@@ -35,12 +34,18 @@ public class MoneyTransferDto {
     private String deviceFingerPrint;
 
     // Getters and setters
-    public String getMerchantCategoryCode() {
+
+
+    public Integer getMerchantCategoryCode() {
         return merchantCategoryCode;
     }
 
-    public void setMerchantCategoryCode(String merchantCategoryCode) {
+    public void setMerchantCategoryCode(Integer merchantCategoryCode) {
         this.merchantCategoryCode = merchantCategoryCode;
+    }
+
+    public Boolean getCrossBorder() {
+        return crossBorder;
     }
 
     public Boolean isCrossBorder() {

@@ -19,15 +19,15 @@ public class Transaction {
     private String userLocation;
     private LocalDateTime timeOfTransaction;
     private String status;
-    private String merchantCategoryCode;
+    private Integer merchantCategoryCode;
     private boolean crossBorder;
     private String deviceFingerPrint;
 
-    public String getMerchantCategoryCode() {
+    public Integer getMerchantCategoryCode() {
         return merchantCategoryCode;
     }
 
-    public void setMerchantCategoryCode(String merchantCategoryCode) {
+    public void setMerchantCategoryCode(Integer merchantCategoryCode) {
         this.merchantCategoryCode = merchantCategoryCode;
     }
 
