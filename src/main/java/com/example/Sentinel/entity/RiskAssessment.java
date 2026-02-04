@@ -25,8 +25,17 @@ public class RiskAssessment {
     private Long CrossBorderScore;
     private Long deviceFingerPrintScore;
     private Double overallScore;
+    private String fraudPossibility;
     @ElementCollection
     private List<String> triggeredRules;
+
+    public String getFraudPossibility() {
+        return fraudPossibility;
+    }
+
+    public void setFraudPossibility(String fraudPossibility) {
+        this.fraudPossibility = fraudPossibility;
+    }
 
     public Long getMerchantCategoryScore() {
         return merchantCategoryScore;
