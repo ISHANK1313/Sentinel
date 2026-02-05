@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -19,24 +21,35 @@ public class TransactionService {
     private UsersRepo usersRepo;
     @Autowired
     private TransactionRepo transactionRepo;
+    @Autowired
+    private RiskScoringService riskScoringService;
     @Transactional
     public boolean storeTransaction(MoneyTransferDto moneyTransferDto) {
         if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
-            Transaction t = new Transaction();
-            t.setAmount(moneyTransferDto.getAmount());
-            t.setTimeOfTransaction(moneyTransferDto.getTimeOfPayment());
-            t.setStatus("UNFLAGGED");
-            t.setMerchantId(moneyTransferDto.getMerchantId());
-            t.setUserLocation(moneyTransferDto.getLocationOfUser());
-            Optional<Users> u=usersRepo.findById(moneyTransferDto.getUserId());
-            t.setUsers(u.get());
-            t.setMerchantCategoryCode(moneyTransferDto.getMerchantCategoryCode());
-            t.setDeviceFingerPrint(moneyTransferDto.getDeviceFingerPrint());
-            t.setCrossBorder(moneyTransferDto.isCrossBorder());
-            transactionRepo.save(t);
+            Transaction transaction= new Transaction();
+            initialiseTransaction(transaction,moneyTransferDto);
+            riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction);
+            transactionRepo.save(transaction);
           return true;
         }
         return false;
+    }
+    private void initialiseTransaction( Transaction t,MoneyTransferDto dto){
+        t.setAmount(dto.getAmount());
+        t.setTimeOfTransaction(dto.getTimeOfPayment());
+        t.setStatus("UNFLAGGED");
+        t.setMerchantId(dto.getMerchantId());
+        t.setUserLocation(dto.getLocationOfUser());
+        Optional<Users> u=usersRepo.findById(dto.getUserId());
+        t.setUsers(u.get());
+        t.setMerchantCategoryCode(dto.getMerchantCategoryCode());
+        t.setDeviceFingerPrint(dto.getDeviceFingerPrint());
+        t.setCrossBorder(dto.isCrossBorder());
+    }
+
+    private List<Transaction> getAll30DaysTransaction(Long userId){
+       Optional<List<Transaction>> transactionList= transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(userId,LocalDateTime.now().minusDays(30));
+        return transactionList.get();
     }
 
 

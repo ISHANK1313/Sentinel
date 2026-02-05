@@ -24,6 +24,7 @@ public class RiskScoringService {
         setAllScores(riskAssessment,previousTransaction,currentTransaction);
         setFraudPossibility(riskAssessment);
         setTriggeredRules(riskAssessment);
+        setFlag(riskAssessment,currentTransaction);
         riskAssessmentRepo.save(riskAssessment);
 
     }
@@ -94,6 +95,12 @@ public class RiskScoringService {
             stringList.add("Amount Rule");
         }
 
+    }
+
+    private void setFlag(RiskAssessment riskAssessment,Transaction currTransaction){
+        if(riskAssessment.getOverallScore()>60){
+            currTransaction.setStatus("FLAGGED");
+        }
     }
 
 
