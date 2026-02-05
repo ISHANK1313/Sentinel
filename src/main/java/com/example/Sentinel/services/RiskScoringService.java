@@ -94,6 +94,7 @@ public class RiskScoringService {
         if(risk.getAmountScore()>=10){
             stringList.add("Amount Rule");
         }
+        risk.setTriggeredRules(stringList);
 
     }
 
