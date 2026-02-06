@@ -30,6 +30,7 @@ public class TransactionService {
         if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
             Transaction transaction= new Transaction();
             initialiseTransaction(transaction,moneyTransferDto);
+            transaction=transactionRepo.save(transaction);
             RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction);
             transactionRepo.save(transaction);
           return dto;

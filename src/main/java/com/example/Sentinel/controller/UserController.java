@@ -54,9 +54,9 @@ public class UserController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User with this id does not exists");
             }
         } catch (Exception e) {
-            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }
-        return null;
+
     }
 
 
