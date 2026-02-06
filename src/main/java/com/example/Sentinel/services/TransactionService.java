@@ -2,6 +2,7 @@ package com.example.Sentinel.services;
 
 import com.example.Sentinel.dto.MoneyTransferDto;
 import com.example.Sentinel.dto.RiskAssessmentDto;
+import com.example.Sentinel.dto.TransactionDto;
 import com.example.Sentinel.entity.Transaction;
 
 import com.example.Sentinel.entity.Users;
@@ -37,6 +38,47 @@ public class TransactionService {
         }
         return null;
     }
+    public TransactionDto getTransactionDetails(Long transactionId){
+
+        if(!transactionRepo.existsById(transactionId)){
+            return null;
+        }
+            TransactionDto dto= new TransactionDto();
+            Transaction t = transactionRepo.findById(transactionId).get();
+            dto.setAmount(t.getAmount());
+            dto.setCrossBorder(t.isCrossBorder());
+            dto.setStatus(t.getStatus());
+            dto.setTimeOfTransaction(t.getTimeOfTransaction());
+            dto.setMerchantId(t.getMerchantId());
+            dto.setUserId(t.getUsers().getUserId());
+            dto.setDeviceFingerPrint(t.getDeviceFingerPrint());
+            dto.setUserLocation(t.getUserLocation());
+            dto.setMerchantCategoryCode(t.getMerchantCategoryCode());
+            dto.setTransactionId(transactionId);
+            return dto;
+
+    }
+  public List<TransactionDto> getTop10RecentTransactionFromUser(Long userId){
+        List<Transaction> transactionList=transactionRepo.findTop10ByUsers_UserIdOrderByTimeOfTransactionDesc(userId);
+        if(transactionList.isEmpty()){
+            return null;
+        }
+        List<TransactionDto> dtoList= new ArrayList<>();
+        for(int i=0;i<transactionList.size();i++){
+            TransactionDto dto=new TransactionDto();
+            dto.setTransactionId(transactionList.get(i).getTransactionId());
+            dto.setUserId(transactionList.get(i).getUsers().getUserId());
+            dto.setAmount(transactionList.get(i).getAmount());
+            dto.setStatus(transactionList.get(i).getStatus());
+            dto.setUserLocation(transactionList.get(i).getUserLocation());
+            dto.setTimeOfTransaction(transactionList.get(i).getTimeOfTransaction());
+            dto.setMerchantCategoryCode(transactionList.get(i).getMerchantCategoryCode());
+            dto.setMerchantId(transactionList.get(i).getMerchantId());
+            dto.setCrossBorder(transactionList.get(i).isCrossBorder());
+            dto.setDeviceFingerPrint(transactionList.get(i).getDeviceFingerPrint());
+        }
+        return dtoList;
+  }
     private void initialiseTransaction( Transaction t,MoneyTransferDto dto){
         t.setAmount(dto.getAmount());
         t.setTimeOfTransaction(dto.getTimeOfPayment());
