@@ -2,6 +2,7 @@ package com.example.Sentinel.services;
 
 
 import com.example.Sentinel.config.MccRegistry;
+import com.example.Sentinel.dto.RiskAssessmentDto;
 import com.example.Sentinel.entity.RiskAssessment;
 import com.example.Sentinel.entity.Transaction;
 import com.example.Sentinel.repo.RiskAssessmentRepo;
@@ -18,7 +19,7 @@ public class RiskScoringService {
     private RiskAssessmentRepo riskAssessmentRepo;
     @Autowired
     private MccRegistry mccRegistry;
-    public void RiskEngine(List<Transaction> previousTransaction, Transaction currentTransaction){
+    public RiskAssessmentDto RiskEngine(List<Transaction> previousTransaction, Transaction currentTransaction){
         RiskAssessment riskAssessment= new RiskAssessment();
         riskAssessment.setTransaction(currentTransaction);
         setAllScores(riskAssessment,previousTransaction,currentTransaction);
@@ -26,7 +27,25 @@ public class RiskScoringService {
         setTriggeredRules(riskAssessment);
         setFlag(riskAssessment,currentTransaction);
         riskAssessmentRepo.save(riskAssessment);
+        return setAndReturnRiskDto(riskAssessment);
 
+    }
+
+    private RiskAssessmentDto setAndReturnRiskDto(RiskAssessment riskAssessment){
+        RiskAssessmentDto riskAssessmentDto= new RiskAssessmentDto();
+        riskAssessmentDto.setAmountScore(riskAssessment.getAmountScore());
+        riskAssessmentDto.setLocationScore(riskAssessment.getLocationScore());
+        riskAssessmentDto.setMerchantCategoryScore(riskAssessment.getMerchantCategoryScore());
+        riskAssessmentDto.setFraudPossibility(riskAssessment.getFraudPossibility());
+        riskAssessmentDto.setTimeScore(riskAssessment.getTimeScore());
+        riskAssessmentDto.setOverallScore(riskAssessment.getOverallScore());
+        riskAssessmentDto.setCrossBorderScore(riskAssessment.getCrossBorderScore());
+        riskAssessmentDto.setDeviceFingerPrintScore(riskAssessment.getDeviceFingerPrintScore());
+        riskAssessmentDto.setId(riskAssessment.getId());
+        riskAssessmentDto.setVelocityScore(riskAssessment.getVelocityScore());
+        riskAssessmentDto.setSequenceScore(riskAssessment.getSequenceScore());
+        riskAssessmentDto.setTriggeredRules(riskAssessment.getTriggeredRules());
+        return riskAssessmentDto;
     }
 
     private void setAllScores(RiskAssessment risk, List<Transaction> transactions, Transaction curr){
@@ -41,10 +60,10 @@ public class RiskScoringService {
         overall+= (double)risk.getAmountScore()*0.25;
         risk.setLocationScore(userLocationRule.calculateScore(transactions,curr.getUserLocation()));
         overall+=(double) risk.getLocationScore()*0.20;
-        risk.setMerchantScore(merchantCategoryCodeRule
+        risk.setMerchantCategoryScore(merchantCategoryCodeRule
                 .calculateScore(transactions, curr
                         .getMerchantCategoryCode(), mccRegistry));
-        overall+=(double) risk.getMerchantScore()*0.15;
+        overall+=(double) risk.getMerchantCategoryScore()*0.15;
         risk.setTimeScore(timeOfTransactionRule.calculateScore(transactions,curr
                 .getTimeOfTransaction()));
         overall+=(double)risk.getTimeScore()*0.15;
@@ -55,6 +74,8 @@ public class RiskScoringService {
         overall+=(double) risk.getDeviceFingerPrintScore()*0.20;
         risk.setVelocityScore(0L);
         overall+=(double) risk.getVelocityScore();
+        risk.setSequenceScore(0L);
+        overall+=(double)risk.getSequenceScore();
         risk.setOverallScore(overall);
 
     }
@@ -76,7 +97,7 @@ public class RiskScoringService {
         if(risk.getTimeScore()>=15){
             stringList.add("Time Rule");
         }
-        if(risk.getMerchantScore()>=15){
+        if(risk.getMerchantCategoryScore()>=15){
             stringList.add("Merchant Code Rule");
         }
         if(risk.getLocationScore()>=5){

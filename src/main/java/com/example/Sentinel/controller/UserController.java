@@ -43,4 +43,22 @@ public class UserController {
 
     }
 
+    @DeleteMapping("/clearUser")
+    public ResponseEntity<?> deleteUser(@RequestParam Long user_id){
+        try {
+            if (usersRepo.existsById(user_id)) {
+                usersRepo.delete(usersRepo.findById(user_id).get());
+                return ResponseEntity.ok().body("User Deleted successfully");
+            }
+            else{
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User with this id does not exists");
+            }
+        } catch (Exception e) {
+            ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
+        }
+        return null;
+    }
+
+
+
 }

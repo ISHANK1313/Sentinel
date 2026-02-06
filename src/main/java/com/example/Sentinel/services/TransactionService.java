@@ -1,6 +1,7 @@
 package com.example.Sentinel.services;
 
 import com.example.Sentinel.dto.MoneyTransferDto;
+import com.example.Sentinel.dto.RiskAssessmentDto;
 import com.example.Sentinel.entity.Transaction;
 
 import com.example.Sentinel.entity.Users;
@@ -25,15 +26,15 @@ public class TransactionService {
     @Autowired
     private RiskScoringService riskScoringService;
     @Transactional
-    public boolean storeTransaction(MoneyTransferDto moneyTransferDto) {
+    public RiskAssessmentDto storeTransaction(MoneyTransferDto moneyTransferDto) {
         if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
             Transaction transaction= new Transaction();
             initialiseTransaction(transaction,moneyTransferDto);
-            riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction);
+            RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction);
             transactionRepo.save(transaction);
-          return true;
+          return dto;
         }
-        return false;
+        return null;
     }
     private void initialiseTransaction( Transaction t,MoneyTransferDto dto){
         t.setAmount(dto.getAmount());

@@ -1,20 +1,9 @@
-package com.example.Sentinel.entity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+package com.example.Sentinel.dto;
 
 import java.util.List;
 
-@Entity
-public class RiskAssessment {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
+public class RiskAssessmentDto {
     private Long id;
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="transaction_id",nullable = false,unique = true)
-    @JsonIgnore
-    private Transaction transaction;
-
     private Long locationScore;
     private Long amountScore;
     private Long timeScore;
@@ -25,40 +14,7 @@ public class RiskAssessment {
     private Long deviceFingerPrintScore;
     private Double overallScore;
     private String fraudPossibility;
-    @ElementCollection
     private List<String> triggeredRules;
-
-    public String getFraudPossibility() {
-        return fraudPossibility;
-    }
-
-    public void setFraudPossibility(String fraudPossibility) {
-        this.fraudPossibility = fraudPossibility;
-    }
-
-    public Long getMerchantCategoryScore() {
-        return merchantCategoryScore;
-    }
-
-    public void setMerchantCategoryScore(Long merchantCategoryScore) {
-        this.merchantCategoryScore = merchantCategoryScore;
-    }
-
-    public Long getCrossBorderScore() {
-        return CrossBorderScore;
-    }
-
-    public void setCrossBorderScore(Long crossBorderScore) {
-        CrossBorderScore = crossBorderScore;
-    }
-
-    public Long getDeviceFingerPrintScore() {
-        return deviceFingerPrintScore;
-    }
-
-    public void setDeviceFingerPrintScore(Long deviceFingerPrintScore) {
-        this.deviceFingerPrintScore = deviceFingerPrintScore;
-    }
 
     public Long getId() {
         return id;
@@ -66,14 +22,6 @@ public class RiskAssessment {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public Transaction getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
     }
 
     public Long getLocationScore() {
@@ -116,12 +64,44 @@ public class RiskAssessment {
         this.sequenceScore = sequenceScore;
     }
 
+    public Long getMerchantCategoryScore() {
+        return merchantCategoryScore;
+    }
+
+    public void setMerchantCategoryScore(Long merchantCategoryScore) {
+        this.merchantCategoryScore = merchantCategoryScore;
+    }
+
+    public Long getCrossBorderScore() {
+        return CrossBorderScore;
+    }
+
+    public void setCrossBorderScore(Long crossBorderScore) {
+        CrossBorderScore = crossBorderScore;
+    }
+
+    public Long getDeviceFingerPrintScore() {
+        return deviceFingerPrintScore;
+    }
+
+    public void setDeviceFingerPrintScore(Long deviceFingerPrintScore) {
+        this.deviceFingerPrintScore = deviceFingerPrintScore;
+    }
+
     public Double getOverallScore() {
         return overallScore;
     }
 
     public void setOverallScore(Double overallScore) {
         this.overallScore = overallScore;
+    }
+
+    public String getFraudPossibility() {
+        return fraudPossibility;
+    }
+
+    public void setFraudPossibility(String fraudPossibility) {
+        this.fraudPossibility = fraudPossibility;
     }
 
     public List<String> getTriggeredRules() {
