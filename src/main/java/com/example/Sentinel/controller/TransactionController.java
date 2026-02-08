@@ -33,7 +33,7 @@ public class TransactionController {
      @GetMapping("/details")
      public ResponseEntity<?> getTransactionDetails(@RequestParam @Valid Long transactionId){
         TransactionDto dto=transactionService.getTransactionDetails(transactionId);
-        if(dto.equals(null)){
+        if(dto==null){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("no such transaction id exits");
         }
         return ResponseEntity.ok().body(dto);

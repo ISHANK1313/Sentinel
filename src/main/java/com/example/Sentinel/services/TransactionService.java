@@ -81,6 +81,7 @@ public class TransactionService {
            dto.setMerchantId(transactionList.get(i).getMerchantId());
            dto.setCrossBorder(transactionList.get(i).isCrossBorder());
            dto.setDeviceFingerPrint(transactionList.get(i).getDeviceFingerPrint());
+           dtoList.add(dto);
        }
        return dtoList;
    }
