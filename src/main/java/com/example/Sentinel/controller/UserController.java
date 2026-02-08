@@ -35,7 +35,7 @@ public class UserController {
         }
     }
     @GetMapping("/userdetails")
-    public ResponseEntity<?> getUserDetail(@RequestParam Long user_id){
+    public ResponseEntity<?> getUserDetail(@Valid @RequestParam Long user_id){
         if(usersRepo.existsById(user_id)){
             return ResponseEntity.ok().body(usersRepo.findById(user_id));
         }
@@ -44,7 +44,7 @@ public class UserController {
     }
 
     @DeleteMapping("/clearUser")
-    public ResponseEntity<?> deleteUser(@RequestParam Long user_id){
+    public ResponseEntity<?> deleteUser(@RequestParam @Valid Long user_id){
         try {
             if (usersRepo.existsById(user_id)) {
                 usersRepo.delete(usersRepo.findById(user_id).get());

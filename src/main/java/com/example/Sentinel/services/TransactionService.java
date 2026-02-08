@@ -63,22 +63,27 @@ public class TransactionService {
         if(transactionList.isEmpty()){
             return null;
         }
-        List<TransactionDto> dtoList= new ArrayList<>();
-        for(int i=0;i<transactionList.size();i++){
-            TransactionDto dto=new TransactionDto();
-            dto.setTransactionId(transactionList.get(i).getTransactionId());
-            dto.setUserId(transactionList.get(i).getUsers().getUserId());
-            dto.setAmount(transactionList.get(i).getAmount());
-            dto.setStatus(transactionList.get(i).getStatus());
-            dto.setUserLocation(transactionList.get(i).getUserLocation());
-            dto.setTimeOfTransaction(transactionList.get(i).getTimeOfTransaction());
-            dto.setMerchantCategoryCode(transactionList.get(i).getMerchantCategoryCode());
-            dto.setMerchantId(transactionList.get(i).getMerchantId());
-            dto.setCrossBorder(transactionList.get(i).isCrossBorder());
-            dto.setDeviceFingerPrint(transactionList.get(i).getDeviceFingerPrint());
-        }
-        return dtoList;
+
+        return wrapAround(transactionList);
   }
+
+   private List<TransactionDto> wrapAround(List<Transaction> transactionList){
+       List<TransactionDto> dtoList= new ArrayList<>();
+       for(int i=0;i<transactionList.size();i++){
+           TransactionDto dto=new TransactionDto();
+           dto.setTransactionId(transactionList.get(i).getTransactionId());
+           dto.setUserId(transactionList.get(i).getUsers().getUserId());
+           dto.setAmount(transactionList.get(i).getAmount());
+           dto.setStatus(transactionList.get(i).getStatus());
+           dto.setUserLocation(transactionList.get(i).getUserLocation());
+           dto.setTimeOfTransaction(transactionList.get(i).getTimeOfTransaction());
+           dto.setMerchantCategoryCode(transactionList.get(i).getMerchantCategoryCode());
+           dto.setMerchantId(transactionList.get(i).getMerchantId());
+           dto.setCrossBorder(transactionList.get(i).isCrossBorder());
+           dto.setDeviceFingerPrint(transactionList.get(i).getDeviceFingerPrint());
+       }
+       return dtoList;
+   }
     private void initialiseTransaction( Transaction t,MoneyTransferDto dto){
         t.setAmount(dto.getAmount());
         t.setTimeOfTransaction(dto.getTimeOfPayment());
@@ -96,7 +101,13 @@ public class TransactionService {
        Optional<List<Transaction>> transactionList= transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(userId,LocalDateTime.now().minusDays(30));
      return transactionList.orElse(new ArrayList<>());
     }
-
+   public List<TransactionDto> getAll30DaysTransactionDto(Long userId){
+        List<Transaction> list=getAll30DaysTransaction(userId);
+       if(list.isEmpty()){
+           return null;
+       }
+        return wrapAround(list);
+   }
 
 
 }
