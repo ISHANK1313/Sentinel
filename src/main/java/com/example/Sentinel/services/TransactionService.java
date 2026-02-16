@@ -123,19 +123,15 @@ public class TransactionService {
         String key24Hr = "users:" + userId + ":velocity:24hr";
 
         Long count5Min = redisTemplate.opsForValue().increment(key5Min);
-        redisTemplate.opsForValue().increment(key1Hr);
-        redisTemplate.opsForValue().increment(key24Hr);
+        Long count1Hr=redisTemplate.opsForValue().increment(key1Hr);
+        Long count24Hr=redisTemplate.opsForValue().increment(key24Hr);
 
         if (count5Min == 1) {
             redisTemplate.expire(key5Min, Duration.ofMinutes(5));
         }
-
-        Long count1Hr = redisTemplate.opsForValue().increment(key1Hr);
         if (count1Hr == 1) {
             redisTemplate.expire(key1Hr, Duration.ofHours(1));
         }
-
-        Long count24Hr = redisTemplate.opsForValue().increment(key24Hr);
         if (count24Hr == 1) {
             redisTemplate.expire(key24Hr, Duration.ofDays(1));
         }
