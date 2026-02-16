@@ -10,7 +10,7 @@ public class VelocityRule {
        String value5min=redisTemplate.opsForValue().get(key5Min);
        String value1hr=redisTemplate.opsForValue().get(key1Hr);
        String value24hr=redisTemplate.opsForValue().get(key24Hr);
-       Long val5min=Long.parseLong(value5min);
+       Long val5min = value5min != null ? Long.parseLong(value5min) : 0L;
        Long score5min;
        if(val5min<=4){
            score5min= 0L;
@@ -20,7 +20,7 @@ public class VelocityRule {
        else {
            score5min=35L;
        }
-       Long val1hr=Long.parseLong(value1hr);
+       Long val1hr=value1hr != null ? Long.parseLong(value1hr) : 0L;
        Long score1hr;
        if(val1hr<=10){
            score1hr= 0L;
@@ -30,7 +30,7 @@ public class VelocityRule {
        else {
            score1hr=30L;
        }
-       Long val24hr=Long.parseLong(value24hr);
+       Long val24hr=value24hr != null ? Long.parseLong(value24hr) : 0L;
        Long score24hr;
        if(val24hr<=50){
            score24hr= 0L;
