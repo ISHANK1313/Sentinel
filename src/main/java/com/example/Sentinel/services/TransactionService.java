@@ -9,9 +9,11 @@ import com.example.Sentinel.entity.Users;
 import com.example.Sentinel.repo.TransactionRepo;
 import com.example.Sentinel.repo.UsersRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -26,13 +28,16 @@ public class TransactionService {
     private TransactionRepo transactionRepo;
     @Autowired
     private RiskScoringService riskScoringService;
+    @Autowired
+    private RedisTemplate<String,String>redisTemplate;
     @Transactional
     public RiskAssessmentDto storeTransaction(MoneyTransferDto moneyTransferDto) {
         if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
             Transaction transaction= new Transaction();
             initialiseTransaction(transaction,moneyTransferDto);
             transaction=transactionRepo.save(transaction);
-            RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction);
+            storeInRedis(transaction);
+            RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction,redisTemplate);
             transactionRepo.save(transaction);
           return dto;
         }
@@ -109,6 +114,32 @@ public class TransactionService {
        }
         return wrapAround(list);
    }
+    public void storeInRedis(Transaction transaction) {
+
+        String userId = transaction.getUsers().getUserId().toString();
+
+        String key5Min = "users:" + userId + ":velocity:5min";
+        String key1Hr = "users:" + userId + ":velocity:1hr";
+        String key24Hr = "users:" + userId + ":velocity:24hr";
+
+        Long count5Min = redisTemplate.opsForValue().increment(key5Min);
+        redisTemplate.opsForValue().increment(key1Hr);
+        redisTemplate.opsForValue().increment(key24Hr);
+
+        if (count5Min == 1) {
+            redisTemplate.expire(key5Min, Duration.ofMinutes(5));
+        }
+
+        Long count1Hr = redisTemplate.opsForValue().increment(key1Hr);
+        if (count1Hr == 1) {
+            redisTemplate.expire(key1Hr, Duration.ofHours(1));
+        }
+
+        Long count24Hr = redisTemplate.opsForValue().increment(key24Hr);
+        if (count24Hr == 1) {
+            redisTemplate.expire(key24Hr, Duration.ofDays(1));
+        }
+    }
 
 
 }
