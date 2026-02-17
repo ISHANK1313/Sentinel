@@ -118,23 +118,13 @@ public class TransactionService {
 
         String userId = transaction.getUsers().getUserId().toString();
 
-        String key5Min = "users:" + userId + ":velocity:5min";
-        String key1Hr = "users:" + userId + ":velocity:1hr";
-        String key24Hr = "users:" + userId + ":velocity:24hr";
+        String key = "users:" + userId + ":velocity";
+        long now=System.currentTimeMillis();
+        long cutoff=now-Duration.ofHours(24).toMillis();
+        redisTemplate.opsForZSet().removeRangeByScore(key,0,cutoff);
+        redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
 
-        Long count5Min = redisTemplate.opsForValue().increment(key5Min);
-        Long count1Hr=redisTemplate.opsForValue().increment(key1Hr);
-        Long count24Hr=redisTemplate.opsForValue().increment(key24Hr);
 
-        if (count5Min == 1) {
-            redisTemplate.expire(key5Min, Duration.ofMinutes(5));
-        }
-        if (count1Hr == 1) {
-            redisTemplate.expire(key1Hr, Duration.ofHours(1));
-        }
-        if (count24Hr == 1) {
-            redisTemplate.expire(key24Hr, Duration.ofDays(1));
-        }
     }
 
 
