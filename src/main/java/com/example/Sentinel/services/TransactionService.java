@@ -18,6 +18,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Service
@@ -36,8 +37,9 @@ public class TransactionService {
             Transaction transaction= new Transaction();
             initialiseTransaction(transaction,moneyTransferDto);
             transaction=transactionRepo.save(transaction);
-            storeInRedis(transaction);
+            storeInRedisForVelocity(transaction);
             RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction,redisTemplate);
+            storeInRedisForHistory(transaction);
             transactionRepo.save(transaction);
           return dto;
         }
@@ -104,8 +106,19 @@ public class TransactionService {
     }
 
     private List<Transaction> getAll30DaysTransaction(Long userId){
-       Optional<List<Transaction>> transactionList= transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(userId,LocalDateTime.now().minusDays(30));
-     return transactionList.orElse(new ArrayList<>());
+        String cacheKey="history:"+"users:"+userId;
+        long now=System.currentTimeMillis();
+        long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
+        Set<String> txnIds=redisTemplate.opsForZSet().range(cacheKey,thirtyDaysAgo,now);
+        if(txnIds==null||txnIds.isEmpty()){
+            return transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(
+                    userId,LocalDateTime.now().minusDays(30))
+                    .orElse(new ArrayList<>());
+        }
+        List<Long> ids = txnIds.stream()
+                .map(Long::parseLong)
+                .toList();
+     return transactionRepo.findAllById(ids);
     }
    public List<TransactionDto> getAll30DaysTransactionDto(Long userId){
         List<Transaction> list=getAll30DaysTransaction(userId);
@@ -114,7 +127,7 @@ public class TransactionService {
        }
         return wrapAround(list);
    }
-    public void storeInRedis(Transaction transaction) {
+    public void storeInRedisForVelocity(Transaction transaction) {
 
         String userId = transaction.getUsers().getUserId().toString();
 
@@ -125,6 +138,14 @@ public class TransactionService {
         redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
 
 
+    }
+
+    public void storeInRedisForHistory(Transaction transaction){
+        String key="history:users:"+transaction.getUsers().getUserId();
+        long now=System.currentTimeMillis();
+        long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
+        redisTemplate.opsForZSet().removeRange(key,0,thirtyDaysAgo);
+        redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
     }
 
 

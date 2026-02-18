@@ -18,19 +18,39 @@ public class VelocityRule {
        count1hr = count1hr != null ? count1hr : 0L;
        count24hr = count24hr != null ? count24hr : 0L;
        Long score5min;
-       if (count5min <= 4) score5min = 0L;
-       else if (count5min <= 6) score5min = 15L;
-       else score5min = 35L;
+       if (count5min <= 4)
+       {
+           score5min = 0L;
+       }
+       else if (count5min <= 6) {
+           score5min = 15L;
+       }
+       else {
+           score5min = 35L;
+       }
 
        Long score1hr;
-       if (count1hr <= 10) score1hr = 0L;
-       else if (count1hr <= 15) score1hr = 20L;
-       else score1hr = 30L;
+       if (count1hr <= 10) {
+           score1hr = 0L;
+       }
+       else if (count1hr <= 15) {
+           score1hr = 20L;
+       }
+       else {
+
+           score1hr = 30L;
+       }
 
        Long score24hr;
-       if (count24hr <= 50) score24hr = 0L;
-       else if (count24hr <= 100) score24hr = 15L;
-       else score24hr = 25L;
+       if (count24hr <= 50) {
+           score24hr = 0L;
+       }
+       else if (count24hr <= 100) {
+           score24hr = 15L;
+       }
+       else {
+           score24hr = 25L;
+       }
 
      return Math.max(score24hr,Math.max(score1hr,score5min));
    }
