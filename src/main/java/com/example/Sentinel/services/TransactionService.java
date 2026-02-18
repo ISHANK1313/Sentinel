@@ -109,7 +109,7 @@ public class TransactionService {
         String cacheKey="history:"+"users:"+userId;
         long now=System.currentTimeMillis();
         long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
-        Set<String> txnIds=redisTemplate.opsForZSet().range(cacheKey,thirtyDaysAgo,now);
+        Set<String> txnIds=redisTemplate.opsForZSet().rangeByScore(cacheKey,thirtyDaysAgo,now);
         if(txnIds==null||txnIds.isEmpty()){
             return transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(
                     userId,LocalDateTime.now().minusDays(30))
@@ -144,7 +144,7 @@ public class TransactionService {
         String key="history:users:"+transaction.getUsers().getUserId();
         long now=System.currentTimeMillis();
         long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
-        redisTemplate.opsForZSet().removeRange(key,0,thirtyDaysAgo);
+        redisTemplate.opsForZSet().removeRangeByScore(key,0,thirtyDaysAgo);
         redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
     }
 
