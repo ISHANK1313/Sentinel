@@ -21,7 +21,7 @@ public class StructuringRule {
         if(nearThreshold.size()>=5){
             score+=30;
         }
-         if(sum>50L){
+         if(sum>1000000){
              score+=50;
          }
          return score;

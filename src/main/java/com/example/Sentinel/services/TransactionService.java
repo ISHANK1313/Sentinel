@@ -158,7 +158,7 @@ public class TransactionService {
         redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
     }
     public void storeInRedisForBeneficiaryRule(Transaction transaction){
-        String key="Beneficiary:user:"+transaction.getUsers().getUserId();
+        String key="beneficiary:user:"+transaction.getUsers().getUserId();
         long now=System.currentTimeMillis();
         long nintyDaysAgo= now-Duration.ofDays(90).toMillis();
         redisTemplate.opsForZSet().removeRangeByScore(key,0,nintyDaysAgo);
