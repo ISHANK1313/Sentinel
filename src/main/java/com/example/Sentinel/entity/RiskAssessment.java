@@ -24,9 +24,27 @@ public class RiskAssessment {
     private Long CrossBorderScore;
     private Long deviceFingerPrintScore;
     private Double overallScore;
+    private Long structuringScore;
+    private Long beneficiaryScore;
     private String fraudPossibility;
     @ElementCollection
     private List<String> triggeredRules;
+
+    public Long getStructuringScore() {
+        return structuringScore;
+    }
+
+    public void setStructuringScore(Long structuringScore) {
+        this.structuringScore = structuringScore;
+    }
+
+    public Long getBeneficiaryScore() {
+        return beneficiaryScore;
+    }
+
+    public void setBeneficiaryScore(Long beneficiaryScore) {
+        this.beneficiaryScore = beneficiaryScore;
+    }
 
     public String getFraudPossibility() {
         return fraudPossibility;

@@ -38,6 +38,7 @@ public class TransactionService {
             storeInRedisForVelocity(transaction);
             RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction,redisTemplate);
             storeInRedisForHistory(transaction);
+            storeInRedisForBeneficiaryRule(transaction);
             transactionRepo.save(transaction);
           return dto;
         }
@@ -155,6 +156,13 @@ public class TransactionService {
         long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
         redisTemplate.opsForZSet().removeRangeByScore(key,0,thirtyDaysAgo);
         redisTemplate.opsForZSet().add(key,transaction.getTransactionId().toString(),now);
+    }
+    public void storeInRedisForBeneficiaryRule(Transaction transaction){
+        String key="Beneficiary:user:"+transaction.getUsers().getUserId();
+        long now=System.currentTimeMillis();
+        long nintyDaysAgo= now-Duration.ofDays(90).toMillis();
+        redisTemplate.opsForZSet().removeRangeByScore(key,0,nintyDaysAgo);
+        redisTemplate.opsForZSet().add(key,transaction.getMerchantId().toString(),now);
     }
 
 

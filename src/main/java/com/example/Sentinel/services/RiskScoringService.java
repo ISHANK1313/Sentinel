@@ -45,6 +45,8 @@ public class RiskScoringService {
         riskAssessmentDto.setId(riskAssessment.getId());
         riskAssessmentDto.setVelocityScore(riskAssessment.getVelocityScore());
         riskAssessmentDto.setSequenceScore(riskAssessment.getSequenceScore());
+        riskAssessmentDto.setStructuringScore(riskAssessment.getStructuringScore());
+        riskAssessmentDto.setBeneficiaryScore(riskAssessment.getBeneficiaryScore());
         riskAssessmentDto.setTriggeredRules(riskAssessment.getTriggeredRules());
         return riskAssessmentDto;
     }
@@ -57,27 +59,34 @@ public class RiskScoringService {
         TimeOfTransactionRule timeOfTransactionRule= new TimeOfTransactionRule();
         UserLocationRule userLocationRule= new UserLocationRule();
         VelocityRule velocityRule= new VelocityRule();
+        StructuringRule structuringRule= new StructuringRule();
+        BeneficiaryRule beneficiaryRule= new BeneficiaryRule();
         double overall=0.0;
         risk.setAmountScore(amountRule.calculateScore(transactions, curr.getAmount()));
-        overall+= (double)risk.getAmountScore()*0.25;
+        overall+= (double)risk.getAmountScore()*0.20;
         risk.setLocationScore(userLocationRule.calculateScore(transactions,curr.getUserLocation()));
-        overall+=(double) risk.getLocationScore()*0.15;
+        overall+=(double) risk.getLocationScore()*0.10;
         risk.setMerchantCategoryScore(merchantCategoryCodeRule
                 .calculateScore(transactions, curr
                         .getMerchantCategoryCode(), mccRegistry));
         overall+=(double) risk.getMerchantCategoryScore()*0.15;
         risk.setTimeScore(timeOfTransactionRule.calculateScore(transactions,curr
                 .getTimeOfTransaction()));
-        overall+=(double)risk.getTimeScore()*0.15;
+        overall+=(double)risk.getTimeScore()*0.10;
         risk.setCrossBorderScore(crossBorderRule.calculateScore(curr.isCrossBorder()));
         overall+=(double)risk.getCrossBorderScore()*0.05;
         risk.setDeviceFingerPrintScore(deviceFingerPrintRule
                 .calculateScore(transactions, curr.getDeviceFingerPrint()));
-        overall+=(double) risk.getDeviceFingerPrintScore()*0.15;
+        overall+=(double) risk.getDeviceFingerPrintScore()*0.10;
         risk.setVelocityScore(velocityRule.calculateScore(redisTemplate,curr.getUsers().getUserId()));
         overall+=(double) risk.getVelocityScore()*0.10;
         risk.setSequenceScore(0L);
         overall+=(double)risk.getSequenceScore();
+        risk.setStructuringScore(structuringRule.calculateScore(transactions));
+        overall+=(double)risk.getStructuringScore()*0.10;
+        risk.setBeneficiaryScore(beneficiaryRule.calculateScore(curr.getUsers()
+                .getUserId(),curr.getMerchantId(),redisTemplate));
+        overall+=(double)risk.getBeneficiaryScore()*0.10;
         risk.setOverallScore(overall);
 
     }
@@ -119,6 +128,12 @@ public class RiskScoringService {
         }
         if(risk.getSequenceScore()>=10){
             stringList.add("Sequence Rule");
+        }
+        if(risk.getStructuringScore()>=30){
+            stringList.add("Structuring Rule");
+        }
+        if(risk.getBeneficiaryScore()>=15){
+            stringList.add("Beneficiary Rule");
         }
         risk.setTriggeredRules(stringList);
 
