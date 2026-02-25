@@ -5,7 +5,6 @@ import com.example.Sentinel.entity.Transaction;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static java.time.LocalDateTime.now;
 
 public class StructuringRule {
     public Long calculateScore(List<Transaction> last30DaysTxn){

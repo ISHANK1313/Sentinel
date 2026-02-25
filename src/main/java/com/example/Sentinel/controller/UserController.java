@@ -20,7 +20,7 @@ public class UserController {
     public ResponseEntity<?> addUser(@RequestBody @Valid UsersDetailDto usersDetailDto) {
         try {
             if (usersRepo.existsByEmail(usersDetailDto.getEmail())) {
-                return ResponseEntity.status(HttpStatus.CREATED).body("User already existed");
+                return ResponseEntity.status(HttpStatus.CONFLICT).body("User already existed");
             }
             Users users = new Users();
             users.setEmail(usersDetailDto.getEmail());
