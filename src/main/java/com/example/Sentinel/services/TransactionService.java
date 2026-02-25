@@ -15,10 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.time.ZoneId;
+import java.util.*;
 
 
 @Service
@@ -111,14 +109,25 @@ public class TransactionService {
         long thirtyDaysAgo=now-Duration.ofDays(30).toMillis();
         Set<String> txnIds=redisTemplate.opsForZSet().rangeByScore(cacheKey,thirtyDaysAgo,now);
         if(txnIds==null||txnIds.isEmpty()){
-            return transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(
-                    userId,LocalDateTime.now().minusDays(30))
+            List<Transaction>fromDb=transactionRepo.findByUsers_UserIdAndTimeOfTransactionAfter(
+                            userId,LocalDateTime.now().minusDays(30))
                     .orElse(new ArrayList<>());
+            for(int i=0;i< fromDb.size();i++){
+               LocalDateTime dateTime= fromDb.get(i).getTimeOfTransaction();
+               long txnTime=dateTime.atZone(ZoneId.systemDefault())
+                       .toInstant()
+                       .toEpochMilli();
+                redisTemplate.opsForZSet().add(cacheKey,fromDb.get(i).getTransactionId().toString(),txnTime);
+            }
+            redisTemplate.opsForZSet().removeRangeByScore(cacheKey,0,thirtyDaysAgo);
+            return fromDb;
         }
         List<Long> ids = txnIds.stream()
                 .map(Long::parseLong)
                 .toList();
-     return transactionRepo.findAllById(ids);
+        List<Transaction> txns = transactionRepo.findAllById(ids);
+        txns.sort(Comparator.comparing(Transaction::getTimeOfTransaction));
+        return txns;
     }
    public List<TransactionDto> getAll30DaysTransactionDto(Long userId){
         List<Transaction> list=getAll30DaysTransaction(userId);
