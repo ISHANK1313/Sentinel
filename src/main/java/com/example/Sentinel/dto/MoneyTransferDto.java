@@ -33,7 +33,8 @@ public class MoneyTransferDto {
     @NotNull(message="deviceFingerPrint can not be null")
     @NotBlank(message ="deviceFingerPrint can not be blank")
     private String deviceFingerPrint;
-
+    @NotNull(message = "requestId required")
+    @NotBlank(message = "requestId cannot be blank")
     private String requestId;
 
 

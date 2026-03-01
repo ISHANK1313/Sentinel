@@ -99,7 +99,7 @@ public class TransactionService {
   public List<TransactionDto> getTop10RecentTransactionFromUser(Long userId){
         List<Transaction> transactionList=transactionRepo.findTop10ByUsers_UserIdOrderByTimeOfTransactionDesc(userId);
         if(transactionList.isEmpty()){
-            return null;
+            return new ArrayList<>();
         }
 
         return wrapAround(transactionList);
@@ -134,6 +134,7 @@ public class TransactionService {
         t.setMerchantCategoryCode(dto.getMerchantCategoryCode());
         t.setDeviceFingerPrint(dto.getDeviceFingerPrint());
         t.setCrossBorder(dto.isCrossBorder());
+        t.setRequestId(dto.getRequestId());
     }
 
     private List<Transaction> getAll30DaysTransaction(Long userId){
