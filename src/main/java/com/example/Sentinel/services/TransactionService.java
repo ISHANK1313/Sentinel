@@ -48,7 +48,9 @@ public class TransactionService {
     @KafkaListener(topics = "transactions-incoming", groupId = "risk-analyzer-group")
     public void consume(MoneyTransferDto dto) {
         try {
-
+            if(transactionRepo.existsByRequestId(dto.getRequestId())){
+                return;
+            }
             Transaction transaction = new Transaction();
             initialiseTransaction(transaction, dto);
             transaction = transactionRepo.save(transaction);

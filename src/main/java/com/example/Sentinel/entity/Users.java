@@ -1,9 +1,6 @@
 package com.example.Sentinel.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -12,6 +9,7 @@ public class Users {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
     private Long userId;
+    @Column(unique = true)
     private String email;
     private String phoneNumber;
     private String name;

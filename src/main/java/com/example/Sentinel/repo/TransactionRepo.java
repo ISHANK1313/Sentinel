@@ -14,5 +14,6 @@ public interface TransactionRepo extends JpaRepository<Transaction,Long> {
     Optional<List<Transaction>> findByUsers_UserId(Long userId);
     List<Transaction> findTop10ByUsers_UserIdOrderByTimeOfTransactionDesc(Long userId);
     Long countByUsers_UserIdAndMerchantId(Long userId, Long merchantId);
-
+    boolean existsByRequestId(String requestId);
 }
+

@@ -1,5 +1,6 @@
 package com.example.Sentinel.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
@@ -33,8 +34,20 @@ public class MoneyTransferDto {
     @NotBlank(message ="deviceFingerPrint can not be blank")
     private String deviceFingerPrint;
 
+    private String requestId;
+
+
+
     // Getters and setters
 
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
 
     public Integer getMerchantCategoryCode() {
         return merchantCategoryCode;

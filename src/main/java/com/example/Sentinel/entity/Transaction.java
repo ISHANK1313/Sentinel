@@ -22,6 +22,16 @@ public class Transaction {
     private Integer merchantCategoryCode;
     private boolean crossBorder;
     private String deviceFingerPrint;
+    @Column(unique = true, nullable = false)
+    private String requestId;
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
 
     public Integer getMerchantCategoryCode() {
         return merchantCategoryCode;
