@@ -20,11 +20,11 @@ public class TransactionController {
     @PostMapping("/check")
     public ResponseEntity<?>postTransaction(@RequestBody @Valid MoneyTransferDto moneyTransferDto){
         try{
-            RiskAssessmentDto dto=transactionService.storeTransaction(moneyTransferDto);
-            if(dto==null){
+            boolean b=transactionService.storeTransaction(moneyTransferDto);
+            if(b==false){
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("there was an error while submitting the transaction");
             }
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body("transaction accepted");
         } catch (Exception e) {
            return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
         }

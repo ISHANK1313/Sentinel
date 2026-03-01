@@ -10,6 +10,8 @@ import com.example.Sentinel.repo.TransactionRepo;
 import com.example.Sentinel.repo.UsersRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,20 +31,48 @@ public class TransactionService {
     private RiskScoringService riskScoringService;
     @Autowired
     private RedisTemplate<String,String>redisTemplate;
+    @Autowired
+    private KafkaTemplate<String,Object> kafkaTemplate;
+    @Autowired
+    private BroadcastService broadcastService;
     @Transactional
-    public RiskAssessmentDto storeTransaction(MoneyTransferDto moneyTransferDto) {
-        if (usersRepo.existsById(moneyTransferDto.getUserId()) && usersRepo.existsById(moneyTransferDto.getMerchantId())) {
-            Transaction transaction= new Transaction();
-            initialiseTransaction(transaction,moneyTransferDto);
-            transaction=transactionRepo.save(transaction);
+    public boolean storeTransaction(MoneyTransferDto dto) {
+        if (!usersRepo.existsById(dto.getUserId()) ||
+                !usersRepo.existsById(dto.getMerchantId())) {
+            return false;
+        }
+
+        kafkaTemplate.send("transactions-incoming", dto);
+        return true;
+    }
+    @KafkaListener(topics = "transactions-incoming", groupId = "risk-analyzer-group")
+    public void consume(MoneyTransferDto dto) {
+        try {
+
+            Transaction transaction = new Transaction();
+            initialiseTransaction(transaction, dto);
+            transaction = transactionRepo.save(transaction);
+
             storeInRedisForVelocity(transaction);
-            RiskAssessmentDto dto=riskScoringService.RiskEngine(getAll30DaysTransaction(moneyTransferDto.getUserId()),transaction,redisTemplate);
+            RiskAssessmentDto riskDto = riskScoringService.RiskEngine(
+                    getAll30DaysTransaction(dto.getUserId()),
+                    transaction,
+                    redisTemplate
+            );
+
+            kafkaTemplate.send("risk-results", riskDto);
+
             storeInRedisForHistory(transaction);
             storeInRedisForBeneficiaryRule(transaction);
-            transactionRepo.save(transaction);
-          return dto;
+
+        } catch (Exception e) {
+
+            System.err.println("Error processing transaction: " + e.getMessage());
         }
-        return null;
+    }
+    @KafkaListener(topics = "risk-results",groupId = "websocket-broadcaster-group")
+    public void consumeForRiskResult(RiskAssessmentDto riskAssessmentDto){
+       broadcastService.sendRiskUpdate(riskAssessmentDto);
     }
     public TransactionDto getTransactionDetails(Long transactionId){
 
