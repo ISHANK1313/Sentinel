@@ -46,36 +46,38 @@ public class TransactionService {
         return true;
     }
     @KafkaListener(topics = "transactions-incoming", groupId = "risk-analyzer-group")
+    @Transactional
     public void consume(MoneyTransferDto dto) {
+
+        Transaction transaction = new Transaction();
+        initialiseTransaction(transaction, dto);
+
         try {
-            if(transactionRepo.existsByRequestId(dto.getRequestId())){
-                return;
-            }
-            Transaction transaction = new Transaction();
-            initialiseTransaction(transaction, dto);
             transaction = transactionRepo.save(transaction);
-
-            storeInRedisForVelocity(transaction);
-            RiskAssessmentDto riskDto = riskScoringService.RiskEngine(
-                    getAll30DaysTransaction(dto.getUserId()),
-                    transaction,
-                    redisTemplate
-            );
-
-            kafkaTemplate.send("risk-results", riskDto);
-
-            storeInRedisForHistory(transaction);
-            storeInRedisForBeneficiaryRule(transaction);
-
-        } catch (Exception e) {
-
-            System.err.println("Error processing transaction: " + e.getMessage());
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // Duplicate requestId → already processed
+            return;
         }
+
+        storeInRedisForVelocity(transaction);
+
+        RiskAssessmentDto riskDto = riskScoringService.RiskEngine(
+                getAll30DaysTransaction(dto.getUserId()),
+                transaction,
+                redisTemplate
+        );
+
+        kafkaTemplate.send("risk-results", riskDto);
+
+        storeInRedisForHistory(transaction);
+        storeInRedisForBeneficiaryRule(transaction);
     }
+
     @KafkaListener(topics = "risk-results",groupId = "websocket-broadcaster-group")
     public void consumeForRiskResult(RiskAssessmentDto riskAssessmentDto){
        broadcastService.sendRiskUpdate(riskAssessmentDto);
     }
+
     public TransactionDto getTransactionDetails(Long transactionId){
 
         if(!transactionRepo.existsById(transactionId)){

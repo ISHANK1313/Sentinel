@@ -1,6 +1,5 @@
 package com.example.Sentinel.dto;
 
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
