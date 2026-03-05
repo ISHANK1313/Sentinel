@@ -48,7 +48,6 @@ public class RiskScoringService {
 
         double overall = 0.0;
 
-        // Calculate each rule score with weighted contribution
         risk.setAmountScore(amountRule.calculateScore(transactions, curr.getAmount()));
         overall += (double) risk.getAmountScore() * 0.20;
 

@@ -16,7 +16,7 @@ public class RiskAssessment {
     @JsonIgnore
     private Transaction transaction;
 
-    // Individual rule scores
+
     private Long locationScore;
     private Long amountScore;
     private Long timeScore;
@@ -28,13 +28,10 @@ public class RiskAssessment {
     private Long structuringScore;
     private Long beneficiaryScore;
 
-    // Rule engine overall
     private Double overallScore;
 
-    // ML score
     private Double mlScore;
 
-    // Final classification
     private String fraudPossibility;
 
     @ElementCollection

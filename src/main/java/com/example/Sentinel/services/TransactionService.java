@@ -77,20 +77,6 @@ public class TransactionService {
 
     }
 
-    @KafkaListener(topics = "engine-input", groupId = "ml-engine-group")
-    public void consumeForMlEngine(TransactionEnrichedDto enriched){
-
-        MlScoreDto ml = new MlScoreDto();
-
-        ml.setRequestId(enriched.getRequestId());
-        ml.setTransactionId(enriched.getTransactionId());
-
-        double score = runModel(enriched);
-
-        ml.setMlScore(score);
-
-        kafkaTemplate.send("ml-scores", ml);
-    }
     @KafkaListener(topics = "engine-input", groupId = "rules-engine-group")
     public void consumeForRuleEngine(TransactionEnrichedDto enriched){
 
