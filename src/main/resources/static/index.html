@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentinel - Fraud Detection Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1f2937;
+            --light: #f3f4f6;
+            --border: #e5e7eb;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f9fafb;
+            color: #111827;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border-radius: 8px;
+            font-size: 0.875rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .stat-card.danger {
+            border-left-color: var(--danger);
+        }
+
+        .stat-card.warning {
+            border-left-color: var(--warning);
+        }
+
+        .stat-card.success {
+            border-left-color: var(--success);
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+
+        .stat-change.up {
+            color: var(--danger);
+        }
+
+        .stat-change.down {
+            color: var(--success);
+        }
+
+        /* Grid Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        /* Alerts Feed */
+        .alerts-feed {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .alert-item {
+            padding: 1rem;
+            border-left: 4px solid var(--warning);
+            background: #fef3c7;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-item.high {
+            border-left-color: var(--danger);
+            background: #fee2e2;
+        }
+
+        .alert-item.medium {
+            border-left-color: var(--warning);
+            background: #fef3c7;
+        }
+
+        .alert-item.low {
+            border-left-color: var(--success);
+            background: #d1fae5;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .alert-risk {
+            font-weight: 700;
+            font-size: 1.125rem;
+        }
+
+        .alert-time {
+            font-size: 0.75rem;
+            color: #6b7280;
+        }
+
+        .alert-details {
+            font-size: 0.875rem;
+            color: #374151;
+        }
+
+        .alert-rules {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .rule-badge {
+            background: rgba(0,0,0,0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        /* Search Section */
+        .search-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .input-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        input {
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* Table */
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--light);
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.875rem;
+        }
+
+        tr:hover {
+            background: var(--light);
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-high {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-low {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-flagged {
+            background: #fecaca;
+            color: #991b1b;
+        }
+
+        .badge-unflagged {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6b7280;
+        }
+
+        .spinner {
+            border: 3px solid var(--light);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--light);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div class="header">
+    <div class="header-content">
+        <div class="logo">
+            <span>🛡️</span>
+            <span>Sentinel Dashboard</span>
+        </div>
+        <div class="connection-status">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Connecting...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-card danger">
+            <div class="stat-label">High Risk Alerts</div>
+            <div class="stat-value" id="statHighRisk">0</div>
+            <div class="stat-change up" id="statHighRiskChange">+0 today</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="stat-label">Total Transactions</div>
+            <div class="stat-value" id="statTotalTxn">0</div>
+            <div class="stat-change" id="statTotalTxnChange">Last 24h</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Avg Risk Score</div>
+            <div class="stat-value" id="statAvgRisk">0%</div>
+            <div class="stat-change" id="statAvgRiskChange">Overall</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-label">Flagged Rate</div>
+            <div class="stat-value" id="statFlaggedRate">0%</div>
+            <div class="stat-change down" id="statFlaggedRateChange">↓ Good</div>
+        </div>
+    </div>
+
+    <!-- Dashboard Grid -->
+    <div class="dashboard-grid">
+        <!-- Real-time Alerts -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">🚨 Real-time Alerts</h2>
+                <button class="btn btn-secondary" onclick="clearAlerts()">Clear</button>
+            </div>
+            <div class="alerts-feed" id="alertsFeed">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <p>Waiting for fraud alerts...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Distribution Chart -->
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">📈 Risk Distribution</h2>
+            </div>
+            <div class="chart-container">
+                <canvas id="riskChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Search -->
+    <div class="card search-section">
+        <div class="card-header">
+            <h2 class="card-title">🔍 Transaction Search</h2>
+        </div>
+        <div class="search-box">
+            <div class="input-group">
+                <label class="input-label">User ID</label>
+                <input type="number" id="userIdInput" placeholder="Enter user ID">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Transaction ID</label>
+                <input type="number" id="txnIdInput" placeholder="Enter transaction ID">
+            </div>
+            <div class="input-group" style="justify-content: flex-end;">
+                <label class="input-label">&nbsp;</label>
+                <button class="btn btn-primary" onclick="searchTransactions()">Search</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Table -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">💳 Recent Transactions</h2>
+            <button class="btn btn-secondary" onclick="loadRecentTransactions()">Refresh</button>
+        </div>
+        <div class="table-container">
+            <table>
+                <thead>
+                <tr>
+                    <th>Txn ID</th>
+                    <th>User ID</th>
+                    <th>Amount</th>
+                    <th>Risk Score</th>
+                    <th>Risk Level</th>
+                    <th>Status</th>
+                    <th>Time</th>
+                </tr>
+                </thead>
+                <tbody id="transactionTable">
+                <tr>
+                    <td colspan="7">
+                        <div class="loading">
+                            <div class="spinner"></div>
+                            <p>Loading transactions...</p>
+                        </div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuration
+    const API_BASE = 'http://localhost:8080';
+    const WS_URL = 'http://localhost:8080/ws-sockjs';
+
+    // State
+    let stompClient = null;
+    let alertsData = [];
+    let riskChart = null;
+    let stats = {
+        highRisk: 0,
+        totalTxn: 0,
+        avgRisk: 0,
+        flaggedRate: 0
+    };
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        initWebSocket();
+        initChart();
+        loadRecentTransactions();
+    });
+
+    // WebSocket Connection
+    function initWebSocket() {
+        const socket = new SockJS(WS_URL);
+        stompClient = Stomp.over(socket);
+
+        stompClient.connect({},
+            (frame) => {
+                updateConnectionStatus(true);
+                console.log('Connected:', frame);
+
+                // Subscribe to alerts
+                stompClient.subscribe('/dashboard/alerts', (message) => {
+                    const alert = JSON.parse(message.body);
+                    handleNewAlert(alert);
+                });
+            },
+            (error) => {
+                updateConnectionStatus(false);
+                console.error('Connection error:', error);
+                setTimeout(initWebSocket, 5000); // Reconnect
+            }
+        );
+    }
+
+    function updateConnectionStatus(connected) {
+        const dot = document.getElementById('statusDot');
+        const text = document.getElementById('statusText');
+
+        if (connected) {
+            dot.classList.add('connected');
+            text.textContent = 'Connected';
+        } else {
+            dot.classList.remove('connected');
+            text.textContent = 'Disconnected';
+        }
+    }
+
+    // Handle New Alert
+    function handleNewAlert(alert) {
+        console.log('New alert:', alert);
+
+        alertsData.unshift(alert);
+        if (alertsData.length > 50) alertsData.pop();
+
+        updateStats(alert);
+        renderAlert(alert);
+        updateChart();
+    }
+
+    function renderAlert(alert) {
+        const feed = document.getElementById('alertsFeed');
+
+        // Remove empty state
+        const emptyState = feed.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        const riskLevel = alert.fraudPossibility || 'MEDIUM';
+        const riskClass = riskLevel.toLowerCase();
+        const riskScore = alert.overallScore || 0;
+
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert-item ${riskClass}`;
+        alertDiv.innerHTML = `
+            <div class="alert-header">
+                <span class="alert-risk">${riskLevel} RISK - ${riskScore.toFixed(1)}%</span>
+                <span class="alert-time">${new Date().toLocaleTimeString()}</span>
+            </div>
+            <div class="alert-details">
+                Transaction ID: ${alert.transactionId} | User ID: ${alert.requestId?.split('-')[0] || 'N/A'}
+                <br>
+                Amount: ₹${alert.overallScore ? (alert.overallScore * 1000).toFixed(0) : '0'} |
+                ML Score: ${alert.mlScore?.toFixed(1) || 'N/A'}%
+            </div>
+            ${alert.triggeredRules && alert.triggeredRules.length > 0 ? `
+            <div class="alert-rules">
+                ${alert.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
+            </div>
+            ` : ''}
+        `;
+
+        feed.insertBefore(alertDiv, feed.firstChild);
+
+        // Keep only last 20 alerts visible
+        while (feed.children.length > 20) {
+            feed.removeChild(feed.lastChild);
+        }
+    }
+
+    function clearAlerts() {
+        alertsData = [];
+        const feed = document.getElementById('alertsFeed');
+        feed.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p>Alerts cleared. Waiting for new alerts...</p>
+            </div>
+        `;
+        updateStats();
+    }
+
+    // Update Stats
+    function updateStats(newAlert = null) {
+        if (newAlert) {
+            stats.totalTxn++;
+
+            if (newAlert.fraudPossibility === 'HIGH') {
+                stats.highRisk++;
+            }
+        }
+
+        // Calculate average risk
+        if (alertsData.length > 0) {
+            const totalRisk = alertsData.reduce((sum, a) => sum + (a.overallScore || 0), 0);
+            stats.avgRisk = totalRisk / alertsData.length;
+        }
+
+        // Calculate flagged rate
+        const flaggedCount = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
+        stats.flaggedRate = alertsData.length > 0 ? (flaggedCount / alertsData.length) * 100 : 0;
+
+        // Update UI
+        document.getElementById('statHighRisk').textContent = stats.highRisk;
+        document.getElementById('statTotalTxn').textContent = stats.totalTxn;
+        document.getElementById('statAvgRisk').textContent = stats.avgRisk.toFixed(1) + '%';
+        document.getElementById('statFlaggedRate').textContent = stats.flaggedRate.toFixed(1) + '%';
+    }
+
+    // Initialize Chart
+    function initChart() {
+        const ctx = document.getElementById('riskChart').getContext('2d');
+        riskChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        const low = alertsData.filter(a => a.fraudPossibility === 'LOW').length;
+        const medium = alertsData.filter(a => a.fraudPossibility === 'MEDIUM').length;
+        const high = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
+
+        riskChart.data.datasets[0].data = [low, medium, high];
+        riskChart.update();
+    }
+
+    // Load Recent Transactions
+    async function loadRecentTransactions() {
+        // For demo, we'll use alerts data
+        // In production, call API endpoint
+        const tbody = document.getElementById('transactionTable');
+
+        if (alertsData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="7">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">📭</div>
+                            <p>No transactions yet</p>
+                        </div>
+                    </td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = alertsData.slice(0, 10).map(alert => `
+            <tr>
+                <td>${alert.transactionId || 'N/A'}</td>
+                <td>${alert.requestId?.split('-')[0] || 'N/A'}</td>
+                <td>₹${alert.overallScore ? (alert.overallScore * 1000).toFixed(0) : '0'}</td>
+                <td>${alert.overallScore?.toFixed(1) || '0'}%</td>
+                <td>
+                    <span class="badge badge-${(alert.fraudPossibility || 'medium').toLowerCase()}">
+                        ${alert.fraudPossibility || 'MEDIUM'}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${alert.fraudPossibility === 'HIGH' ? 'badge-flagged' : 'badge-unflagged'}">
+                        ${alert.fraudPossibility === 'HIGH' ? 'FLAGGED' : 'UNFLAGGED'}
+                    </span>
+                </td>
+                <td>${new Date().toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    // Search Transactions
+    async function searchTransactions() {
+        const userId = document.getElementById('userIdInput').value;
+        const txnId = document.getElementById('txnIdInput').value;
+
+        if (!userId && !txnId) {
+            alert('Please enter User ID or Transaction ID');
+            return;
+        }
+
+        try {
+            let url;
+            if (txnId) {
+                url = `${API_BASE}/transaction/details?transactionId=${txnId}`;
+            } else {
+                url = `${API_BASE}/transaction/top10ForUser?userId=${userId}`;
+            }
+
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error('Transaction not found');
+            }
+
+            const data = await response.json();
+            displaySearchResults(Array.isArray(data) ? data : [data]);
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    function displaySearchResults(transactions) {
+        const tbody = document.getElementById('transactionTable');
+
+        tbody.innerHTML = transactions.map(txn => `
+            <tr>
+                <td>${txn.transactionId}</td>
+                <td>${txn.userId}</td>
+                <td>₹${txn.amount.toFixed(2)}</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>
+                    <span class="badge ${txn.status === 'FLAGGED' ? 'badge-flagged' : 'badge-unflagged'}">
+                        ${txn.status}
+                    </span>
+                </td>
+                <td>${new Date(txn.timeOfTransaction).toLocaleString()}</td>
+            </tr>
+        `).join('');
+    }
+</script>
+</body>
+</html>
