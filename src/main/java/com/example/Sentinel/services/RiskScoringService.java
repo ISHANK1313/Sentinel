@@ -24,125 +24,84 @@ public class RiskScoringService {
         RiskAssessment riskAssessment= new RiskAssessment();
         riskAssessment.setTransaction(currentTransaction);
         setAllScores(riskAssessment,previousTransaction,currentTransaction,redisTemplate);
-        setFraudPossibility(riskAssessment);
+        /*setFraudPossibility(riskAssessment);
         setTriggeredRules(riskAssessment);
         setFlag(riskAssessment,currentTransaction);
         riskAssessmentRepo.save(riskAssessment);
         return setAndReturnRiskDto(riskAssessment);
-
+         */
+        return convertToDto(riskAssessment, currentTransaction.getRequestId());
     }
 
-    private RiskAssessmentDto setAndReturnRiskDto(RiskAssessment riskAssessment){
-        RiskAssessmentDto riskAssessmentDto= new RiskAssessmentDto();
-        riskAssessmentDto.setAmountScore(riskAssessment.getAmountScore());
-        riskAssessmentDto.setLocationScore(riskAssessment.getLocationScore());
-        riskAssessmentDto.setMerchantCategoryScore(riskAssessment.getMerchantCategoryScore());
-        riskAssessmentDto.setFraudPossibility(riskAssessment.getFraudPossibility());
-        riskAssessmentDto.setTimeScore(riskAssessment.getTimeScore());
-        riskAssessmentDto.setOverallScore(riskAssessment.getOverallScore());
-        riskAssessmentDto.setCrossBorderScore(riskAssessment.getCrossBorderScore());
-        riskAssessmentDto.setDeviceFingerPrintScore(riskAssessment.getDeviceFingerPrintScore());
-        riskAssessmentDto.setId(riskAssessment.getId());
-        riskAssessmentDto.setVelocityScore(riskAssessment.getVelocityScore());
-        riskAssessmentDto.setSequenceScore(riskAssessment.getSequenceScore());
-        riskAssessmentDto.setStructuringScore(riskAssessment.getStructuringScore());
-        riskAssessmentDto.setBeneficiaryScore(riskAssessment.getBeneficiaryScore());
-        riskAssessmentDto.setTriggeredRules(riskAssessment.getTriggeredRules());
-        return riskAssessmentDto;
-    }
+    private void setAllScores(RiskAssessment risk, List<Transaction> transactions,
+                              Transaction curr, RedisTemplate<String, String> redisTemplate) {
 
-    private void setAllScores(RiskAssessment risk, List<Transaction> transactions, Transaction curr,RedisTemplate<String,String>redisTemplate){
-        AmountRule amountRule= new AmountRule();
-        CrossBorderRule crossBorderRule= new CrossBorderRule();
-        DeviceFingerPrintRule deviceFingerPrintRule= new DeviceFingerPrintRule();
-        MerchantCategoryCodeRule merchantCategoryCodeRule= new MerchantCategoryCodeRule();
-        TimeOfTransactionRule timeOfTransactionRule= new TimeOfTransactionRule();
-        UserLocationRule userLocationRule= new UserLocationRule();
-        VelocityRule velocityRule= new VelocityRule();
-        StructuringRule structuringRule= new StructuringRule();
-        BeneficiaryRule beneficiaryRule= new BeneficiaryRule();
-        double overall=0.0;
+        AmountRule amountRule = new AmountRule();
+        CrossBorderRule crossBorderRule = new CrossBorderRule();
+        DeviceFingerPrintRule deviceFingerPrintRule = new DeviceFingerPrintRule();
+        MerchantCategoryCodeRule merchantCategoryCodeRule = new MerchantCategoryCodeRule();
+        TimeOfTransactionRule timeOfTransactionRule = new TimeOfTransactionRule();
+        UserLocationRule userLocationRule = new UserLocationRule();
+        VelocityRule velocityRule = new VelocityRule();
+        StructuringRule structuringRule = new StructuringRule();
+        BeneficiaryRule beneficiaryRule = new BeneficiaryRule();
+
+        double overall = 0.0;
+
+        // Calculate each rule score with weighted contribution
         risk.setAmountScore(amountRule.calculateScore(transactions, curr.getAmount()));
-        overall+= (double)risk.getAmountScore()*0.20;
-        risk.setLocationScore(userLocationRule.calculateScore(transactions,curr.getUserLocation()));
-        overall+=(double) risk.getLocationScore()*0.10;
-        risk.setMerchantCategoryScore(merchantCategoryCodeRule
-                .calculateScore(transactions, curr
-                        .getMerchantCategoryCode(), mccRegistry));
-        overall+=(double) risk.getMerchantCategoryScore()*0.15;
-        risk.setTimeScore(timeOfTransactionRule.calculateScore(transactions,curr
-                .getTimeOfTransaction()));
-        overall+=(double)risk.getTimeScore()*0.10;
+        overall += (double) risk.getAmountScore() * 0.20;
+
+        risk.setLocationScore(userLocationRule.calculateScore(transactions, curr.getUserLocation()));
+        overall += (double) risk.getLocationScore() * 0.10;
+
+        risk.setMerchantCategoryScore(merchantCategoryCodeRule.calculateScore(
+                transactions, curr.getMerchantCategoryCode(), mccRegistry));
+        overall += (double) risk.getMerchantCategoryScore() * 0.15;
+
+        risk.setTimeScore(timeOfTransactionRule.calculateScore(transactions, curr.getTimeOfTransaction()));
+        overall += (double) risk.getTimeScore() * 0.10;
+
         risk.setCrossBorderScore(crossBorderRule.calculateScore(curr.isCrossBorder()));
-        overall+=(double)risk.getCrossBorderScore()*0.05;
-        risk.setDeviceFingerPrintScore(deviceFingerPrintRule
-                .calculateScore(transactions, curr.getDeviceFingerPrint()));
-        overall+=(double) risk.getDeviceFingerPrintScore()*0.10;
-        risk.setVelocityScore(velocityRule.calculateScore(redisTemplate,curr.getUsers().getUserId()));
-        overall+=(double) risk.getVelocityScore()*0.10;
+        overall += (double) risk.getCrossBorderScore() * 0.05;
+
+        risk.setDeviceFingerPrintScore(deviceFingerPrintRule.calculateScore(
+                transactions, curr.getDeviceFingerPrint()));
+        overall += (double) risk.getDeviceFingerPrintScore() * 0.10;
+
+        risk.setVelocityScore(velocityRule.calculateScore(redisTemplate, curr.getUsers().getUserId()));
+        overall += (double) risk.getVelocityScore() * 0.10;
+
         risk.setSequenceScore(0L);
-        overall+=(double)risk.getSequenceScore();
+        overall += (double) risk.getSequenceScore();
+
         risk.setStructuringScore(structuringRule.calculateScore(transactions));
-        overall+=(double)risk.getStructuringScore()*0.10;
-        risk.setBeneficiaryScore(beneficiaryRule.calculateScore(curr.getUsers()
-                .getUserId(),curr.getMerchantId(),redisTemplate));
-        overall+=(double)risk.getBeneficiaryScore()*0.10;
+        overall += (double) risk.getStructuringScore() * 0.10;
+
+        risk.setBeneficiaryScore(beneficiaryRule.calculateScore(
+                curr.getUsers().getUserId(), curr.getMerchantId(), redisTemplate));
+        overall += (double) risk.getBeneficiaryScore() * 0.10;
+
         risk.setOverallScore(overall);
-
-    }
-    private void setFraudPossibility(RiskAssessment risk){
-        double d=risk.getOverallScore();
-        if(d<=30.0){
-            risk.setFraudPossibility("LOW");
-        }
-        else if(d<=60.0){
-            risk.setFraudPossibility("MEDIUM");
-        }
-        else{
-            risk.setFraudPossibility("HIGH");
-        }
     }
 
-    private void setTriggeredRules(RiskAssessment risk){
-        List<String> stringList = new ArrayList<>();
-        if(risk.getTimeScore()>=15){
-            stringList.add("Time Rule");
-        }
-        if(risk.getMerchantCategoryScore()>=15){
-            stringList.add("Merchant Code Rule");
-        }
-        if(risk.getLocationScore()>=5){
-            stringList.add("Location Rule");
-        }
-        if(risk.getVelocityScore()>=20){
-            stringList.add("Velocity Rule");
-        }
-        if(risk.getDeviceFingerPrintScore()>=5){
-            stringList.add("Device Finger Print Rule");
-        }
-        if (risk.getCrossBorderScore()>=10){
-            stringList.add("Cross Border Rule");
-        }
-        if(risk.getAmountScore()>=10){
-            stringList.add("Amount Rule");
-        }
-        if(risk.getSequenceScore()>=10){
-            stringList.add("Sequence Rule");
-        }
-        if(risk.getStructuringScore()>=30){
-            stringList.add("Structuring Rule");
-        }
-        if(risk.getBeneficiaryScore()>=15){
-            stringList.add("Beneficiary Rule");
-        }
-        risk.setTriggeredRules(stringList);
+    private RiskAssessmentDto convertToDto(RiskAssessment risk, String requestId) {
+        RiskAssessmentDto dto = new RiskAssessmentDto();
+        dto.setRequestId(requestId);
+        dto.setTransactionId(risk.getTransaction().getTransactionId());
+        dto.setAmountScore(risk.getAmountScore());
+        dto.setLocationScore(risk.getLocationScore());
+        dto.setMerchantCategoryScore(risk.getMerchantCategoryScore());
+        dto.setTimeScore(risk.getTimeScore());
+        dto.setOverallScore(risk.getOverallScore());
+        dto.setCrossBorderScore(risk.getCrossBorderScore());
+        dto.setDeviceFingerPrintScore(risk.getDeviceFingerPrintScore());
+        dto.setVelocityScore(risk.getVelocityScore());
+        dto.setSequenceScore(risk.getSequenceScore());
+        dto.setStructuringScore(risk.getStructuringScore());
+        dto.setBeneficiaryScore(risk.getBeneficiaryScore());
 
-    }
-
-    private void setFlag(RiskAssessment riskAssessment,Transaction currTransaction){
-        if(riskAssessment.getOverallScore()>60){
-            currTransaction.setStatus("FLAGGED");
-        }
+        return dto;
     }
 
 

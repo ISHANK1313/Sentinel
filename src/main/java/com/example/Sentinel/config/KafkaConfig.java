@@ -1,17 +1,17 @@
 package com.example.Sentinel.config;
 
 import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.*;
-import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -19,10 +19,33 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
+    @Bean
+    public NewTopic transactionsIncomingTopic() {
+        return TopicBuilder.name("transactions-incoming")
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
 
     @Bean
-    public NewTopic transactionsTopic() {
-        return TopicBuilder.name("transactions-incoming")
+    public NewTopic transactionEnrichedTopic() {
+        return TopicBuilder.name("engine-input")
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic ruleScoresTopic() {
+        return TopicBuilder.name("rule-scores")
+                .partitions(3)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic mlScoresTopic() {
+        return TopicBuilder.name("ml-scores")
                 .partitions(3)
                 .replicas(1)
                 .build();
@@ -50,24 +73,30 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory());
     }
 
-
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
         Map<String, Object> config = new HashMap<>();
+
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "risk-analyzer-group");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, "sentinel-group");
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        return new DefaultKafkaConsumerFactory<>(config);
+        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaConsumerFactory<>(
+                config,
+                new StringDeserializer(),
+                new JsonDeserializer<>(Object.class)
+        );
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object>
-    kafkaListenerContainerFactory() {
+    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         return factory;
     }
 }
+

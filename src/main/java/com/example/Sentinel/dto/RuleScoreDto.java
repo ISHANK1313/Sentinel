@@ -1,68 +1,40 @@
-package com.example.Sentinel.entity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+package com.example.Sentinel.dto;
 
 import java.util.List;
 
-@Entity
-public class RiskAssessment {
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Id
-    private Long id;
+public class RuleScoreDto {
+    private String requestId;
+    private Long transactionId;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "transaction_id", nullable = false, unique = true)
-    @JsonIgnore
-    private Transaction transaction;
-
-    // Individual rule scores
-    private Long locationScore;
     private Long amountScore;
-    private Long timeScore;
     private Long velocityScore;
-    private Long sequenceScore;
+    private Long locationScore;
+    private Long timeScore;
     private Long merchantCategoryScore;
     private Long crossBorderScore;
     private Long deviceFingerPrintScore;
     private Long structuringScore;
     private Long beneficiaryScore;
+    private Long sequenceScore;
 
-    // Rule engine overall
     private Double overallScore;
-
-    // ML score
-    private Double mlScore;
-
-    // Final classification
-    private String fraudPossibility;
-
-    @ElementCollection
     private List<String> triggeredRules;
 
     // Getters and Setters
-    public Long getId() {
-        return id;
+    public String getRequestId() {
+        return requestId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
     }
 
-    public Transaction getTransaction() {
-        return transaction;
+    public Long getTransactionId() {
+        return transactionId;
     }
 
-    public void setTransaction(Transaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public Long getLocationScore() {
-        return locationScore;
-    }
-
-    public void setLocationScore(Long locationScore) {
-        this.locationScore = locationScore;
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
     }
 
     public Long getAmountScore() {
@@ -73,14 +45,6 @@ public class RiskAssessment {
         this.amountScore = amountScore;
     }
 
-    public Long getTimeScore() {
-        return timeScore;
-    }
-
-    public void setTimeScore(Long timeScore) {
-        this.timeScore = timeScore;
-    }
-
     public Long getVelocityScore() {
         return velocityScore;
     }
@@ -89,12 +53,20 @@ public class RiskAssessment {
         this.velocityScore = velocityScore;
     }
 
-    public Long getSequenceScore() {
-        return sequenceScore;
+    public Long getLocationScore() {
+        return locationScore;
     }
 
-    public void setSequenceScore(Long sequenceScore) {
-        this.sequenceScore = sequenceScore;
+    public void setLocationScore(Long locationScore) {
+        this.locationScore = locationScore;
+    }
+
+    public Long getTimeScore() {
+        return timeScore;
+    }
+
+    public void setTimeScore(Long timeScore) {
+        this.timeScore = timeScore;
     }
 
     public Long getMerchantCategoryScore() {
@@ -137,28 +109,20 @@ public class RiskAssessment {
         this.beneficiaryScore = beneficiaryScore;
     }
 
+    public Long getSequenceScore() {
+        return sequenceScore;
+    }
+
+    public void setSequenceScore(Long sequenceScore) {
+        this.sequenceScore = sequenceScore;
+    }
+
     public Double getOverallScore() {
         return overallScore;
     }
 
     public void setOverallScore(Double overallScore) {
         this.overallScore = overallScore;
-    }
-
-    public Double getMlScore() {
-        return mlScore;
-    }
-
-    public void setMlScore(Double mlScore) {
-        this.mlScore = mlScore;
-    }
-
-    public String getFraudPossibility() {
-        return fraudPossibility;
-    }
-
-    public void setFraudPossibility(String fraudPossibility) {
-        this.fraudPossibility = fraudPossibility;
     }
 
     public List<String> getTriggeredRules() {

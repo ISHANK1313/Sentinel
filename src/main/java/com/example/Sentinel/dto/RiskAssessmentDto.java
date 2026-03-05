@@ -4,42 +4,55 @@ import java.util.List;
 
 public class RiskAssessmentDto {
     private Long id;
+    private String requestId;
+    private Long transactionId;
+
+    // Individual rule scores
     private Long locationScore;
     private Long amountScore;
     private Long timeScore;
     private Long velocityScore;
     private Long sequenceScore;
     private Long merchantCategoryScore;
-    private Long CrossBorderScore;
+    private Long crossBorderScore;
     private Long deviceFingerPrintScore;
-    private Double overallScore;
     private Long structuringScore;
     private Long beneficiaryScore;
+
+    // Rule engine overall
+    private Double overallScore;
+
+    // ML score
+    private Double mlScore;
+
+    // Final classification
     private String fraudPossibility;
+
     private List<String> triggeredRules;
 
-    public Long getStructuringScore() {
-        return structuringScore;
-    }
-
-    public void setStructuringScore(Long structuringScore) {
-        this.structuringScore = structuringScore;
-    }
-
-    public Long getBeneficiaryScore() {
-        return beneficiaryScore;
-    }
-
-    public void setBeneficiaryScore(Long beneficiaryScore) {
-        this.beneficiaryScore = beneficiaryScore;
-    }
-
+    // Getters and Setters
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getRequestId() {
+        return requestId;
+    }
+
+    public void setRequestId(String requestId) {
+        this.requestId = requestId;
+    }
+
+    public Long getTransactionId() {
+        return transactionId;
+    }
+
+    public void setTransactionId(Long transactionId) {
+        this.transactionId = transactionId;
     }
 
     public Long getLocationScore() {
@@ -91,11 +104,11 @@ public class RiskAssessmentDto {
     }
 
     public Long getCrossBorderScore() {
-        return CrossBorderScore;
+        return crossBorderScore;
     }
 
     public void setCrossBorderScore(Long crossBorderScore) {
-        CrossBorderScore = crossBorderScore;
+        this.crossBorderScore = crossBorderScore;
     }
 
     public Long getDeviceFingerPrintScore() {
@@ -106,12 +119,36 @@ public class RiskAssessmentDto {
         this.deviceFingerPrintScore = deviceFingerPrintScore;
     }
 
+    public Long getStructuringScore() {
+        return structuringScore;
+    }
+
+    public void setStructuringScore(Long structuringScore) {
+        this.structuringScore = structuringScore;
+    }
+
+    public Long getBeneficiaryScore() {
+        return beneficiaryScore;
+    }
+
+    public void setBeneficiaryScore(Long beneficiaryScore) {
+        this.beneficiaryScore = beneficiaryScore;
+    }
+
     public Double getOverallScore() {
         return overallScore;
     }
 
     public void setOverallScore(Double overallScore) {
         this.overallScore = overallScore;
+    }
+
+    public Double getMlScore() {
+        return mlScore;
+    }
+
+    public void setMlScore(Double mlScore) {
+        this.mlScore = mlScore;
     }
 
     public String getFraudPossibility() {
