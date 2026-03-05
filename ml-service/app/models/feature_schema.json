@@ -1,0 +1,25 @@
+{
+  "features": [
+    "amount_zscore",
+    "amount_percentile",
+    "velocity_5min",
+    "velocity_1hr",
+    "velocity_24hr",
+    "velocity_burst_score",
+    "merchant_seen_before",
+    "unique_merchants_24hr",
+    "merchant_diversity_score",
+    "device_seen_before",
+    "device_novelty_score",
+    "location_seen_before",
+    "location_novelty_score",
+    "hour_of_day",
+    "is_unusual_hour",
+    "hour_deviation_score",
+    "is_cross_border"
+  ],
+  "n_features": 17,
+  "model_type": "IsolationForest",
+  "contamination": 0.1,
+  "n_estimators": 100
+}

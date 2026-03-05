@@ -27,6 +27,7 @@ public class UserController {
             users.setName(usersDetailDto.getName());
             users.setHomeLocation(usersDetailDto.getHomeLocation());
             users.setCreatedAt(LocalDateTime.now());
+            users.setPhoneNumber(usersDetailDto.getPhoneNumber());
             usersRepo.save(users);
             return ResponseEntity.status(HttpStatus.CREATED).body("User created...");
 
