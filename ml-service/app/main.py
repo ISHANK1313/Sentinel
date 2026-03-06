@@ -25,7 +25,7 @@ app = FastAPI(
 )
 
 # Initialize ML model and feature engineer
-ml_model = FraudDetectionModel(model_version=settings.model_version)
+ml_model = FraudDetectionModel(model_path=settings.model_path)
 feature_engineer = FeatureEngineer(redis_host="localhost", redis_port=6379)
 
 # Kafka Producer
