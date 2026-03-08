@@ -38,7 +38,7 @@ public class UserController {
     @GetMapping("/userdetails")
     public ResponseEntity<?> getUserDetail(@Valid @RequestParam Long user_id){
         if(usersRepo.existsById(user_id)){
-            return ResponseEntity.ok().body(usersRepo.findById(user_id));
+            return ResponseEntity.ok().body(usersRepo.findById(user_id).get());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("user does not exists");
 
