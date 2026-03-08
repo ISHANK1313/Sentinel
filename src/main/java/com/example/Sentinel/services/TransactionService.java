@@ -44,7 +44,10 @@ public class TransactionService {
         kafkaTemplate.send("transactions-incoming", dto);
         return true;
     }
-    @KafkaListener(topics = "transactions-incoming", groupId = "risk-analyzer-group")
+
+    // Uses default "kafkaListenerContainerFactory" → MoneyTransferDto
+    @KafkaListener(topics = "transactions-incoming", groupId = "risk-analyzer-group",
+            containerFactory = "kafkaListenerContainerFactory")
     @Transactional
     public void consume(MoneyTransferDto dto) {
 
@@ -63,21 +66,12 @@ public class TransactionService {
         storeInRedisForBeneficiaryRule(transaction);
         TransactionEnrichedDto enriched = createEnrichedMessage(transaction, dto);
 
-        // send a kafka consumer which is rule engine consumer and ml consumer
-
-        /*RiskAssessmentDto riskDto = riskScoringService.RiskEngine(
-                getAll30DaysTransaction(dto.getUserId()),
-                transaction,
-                redisTemplate
-        );
-         */
-        kafkaTemplate.send("engine-input",enriched);
-        //kafkaTemplate.send("risk-results", riskDto);
-
-
+        kafkaTemplate.send("engine-input", enriched);
     }
 
-    @KafkaListener(topics = "engine-input", groupId = "rules-engine-group")
+    // Uses "enrichedKafkaListenerContainerFactory" → TransactionEnrichedDto
+    @KafkaListener(topics = "engine-input", groupId = "rules-engine-group",
+            containerFactory = "enrichedKafkaListenerContainerFactory")
     public void consumeForRuleEngine(TransactionEnrichedDto enriched){
 
         Transaction transaction = transactionRepo.findById(enriched.getTransactionId())
@@ -108,10 +102,13 @@ public class TransactionService {
         kafkaTemplate.send("rule-scores", msg);
     }
 
-    @KafkaListener(topics = "risk-results",groupId = "websocket-broadcaster-group")
+    // Uses "riskResultKafkaListenerContainerFactory" → RiskAssessmentDto
+    @KafkaListener(topics = "risk-results", groupId = "websocket-broadcaster-group",
+            containerFactory = "riskResultKafkaListenerContainerFactory")
     public void consumeForRiskResult(RiskAssessmentDto riskAssessmentDto){
         broadcastService.sendRiskUpdate(riskAssessmentDto);
     }
+
     private TransactionEnrichedDto createEnrichedMessage(Transaction txn, MoneyTransferDto dto) {
         TransactionEnrichedDto msg = new TransactionEnrichedDto();
         msg.setRequestId(dto.getRequestId());

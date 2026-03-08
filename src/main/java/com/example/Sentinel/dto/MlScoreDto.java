@@ -1,5 +1,8 @@
 package com.example.Sentinel.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MlScoreDto {
     private String requestId;
     private Long transactionId;

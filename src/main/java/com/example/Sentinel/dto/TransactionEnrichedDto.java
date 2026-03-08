@@ -1,7 +1,10 @@
 package com.example.Sentinel.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TransactionEnrichedDto {
     private String requestId;
     private Long transactionId;

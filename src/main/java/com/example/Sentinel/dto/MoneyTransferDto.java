@@ -1,9 +1,11 @@
 package com.example.Sentinel.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MoneyTransferDto {
     @NotNull(message="amount can not be null")
     @Positive(message="amount must be positive value")

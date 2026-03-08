@@ -35,13 +35,17 @@ public class AggregatorService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-    @KafkaListener(topics = "rule-scores", groupId = "aggregator-group")
+    // Uses "ruleScoreKafkaListenerContainerFactory" → RuleScoreDto
+    @KafkaListener(topics = "rule-scores", groupId = "aggregator-group",
+            containerFactory = "ruleScoreKafkaListenerContainerFactory")
     public void consumeRuleScore(RuleScoreDto msg) {
         ruleScores.put(msg.getRequestId(), msg);
         tryAggregate(msg.getRequestId());
     }
 
-    @KafkaListener(topics = "ml-scores", groupId = "aggregator-group")
+    // Uses "mlScoreKafkaListenerContainerFactory" → MlScoreDto
+    @KafkaListener(topics = "ml-scores", groupId = "aggregator-group",
+            containerFactory = "mlScoreKafkaListenerContainerFactory")
     public void consumeMlScore(MlScoreDto msg) {
         mlScores.put(msg.getRequestId(), msg);
         tryAggregate(msg.getRequestId());

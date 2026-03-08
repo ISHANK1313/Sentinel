@@ -1,6 +1,6 @@
 package com.example.Sentinel.config;
 
-import com.example.Sentinel.dto.MoneyTransferDto;
+import com.example.Sentinel.dto.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -32,6 +32,8 @@ public class KafkaConfig {
         return mapper;
     }
 
+    // ======================== PRODUCER ========================
+
     @Bean
     public ProducerFactory<String, Object> producerFactory(ObjectMapper objectMapper) {
         Map<String, Object> config = new HashMap<>();
@@ -49,36 +51,99 @@ public class KafkaConfig {
         return new KafkaTemplate<>(producerFactory);
     }
 
-    @Bean
-    public ConsumerFactory<String, MoneyTransferDto> consumerFactory(ObjectMapper objectMapper) {
+    // ======================== HELPER METHOD ========================
 
-        JsonDeserializer<MoneyTransferDto> deserializer =
-                new JsonDeserializer<>(MoneyTransferDto.class, objectMapper);
+    private <T> ConsumerFactory<String, T> buildConsumerFactory(
+            Class<T> targetType, String groupId, ObjectMapper objectMapper) {
 
+        JsonDeserializer<T> deserializer = new JsonDeserializer<>(targetType, objectMapper);
         deserializer.addTrustedPackages("*");
+        deserializer.setUseTypeHeaders(false);  // Ignore __TypeId__ header, use target type
 
-        Map<String,Object> config = new HashMap<>();
+        Map<String, Object> config = new HashMap<>();
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,"localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG,"risk-analyzer-group");
+        return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(), deserializer);
+    }
 
-        return new DefaultKafkaConsumerFactory<>(
-                config,
-                new StringDeserializer(),
-                deserializer
-        );
+    private <T> ConcurrentKafkaListenerContainerFactory<String, T> buildFactory(
+            ConsumerFactory<String, T> consumerFactory) {
+
+        ConcurrentKafkaListenerContainerFactory<String, T> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(consumerFactory);
+
+        // Add error handler so deserialization errors don't kill the consumer
+        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(1000L, 2)));
+
+        return factory;
+    }
+
+    // ======================== CONSUMERS ========================
+
+    // 1. Factory for "transactions-incoming" topic → MoneyTransferDto
+    @Bean
+    public ConsumerFactory<String, MoneyTransferDto> moneyTransferConsumerFactory(ObjectMapper objectMapper) {
+        return buildConsumerFactory(MoneyTransferDto.class, "risk-analyzer-group", objectMapper);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, MoneyTransferDto>
-    kafkaListenerContainerFactory(ConsumerFactory<String, MoneyTransferDto> consumerFactory) {
-
-        ConcurrentKafkaListenerContainerFactory<String, MoneyTransferDto> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
-
-        factory.setConsumerFactory(consumerFactory);
-        return factory;
+    kafkaListenerContainerFactory(ConsumerFactory<String, MoneyTransferDto> moneyTransferConsumerFactory) {
+        return buildFactory(moneyTransferConsumerFactory);
     }
+
+    // 2. Factory for "engine-input" topic → TransactionEnrichedDto
+    @Bean
+    public ConsumerFactory<String, TransactionEnrichedDto> enrichedConsumerFactory(ObjectMapper objectMapper) {
+        return buildConsumerFactory(TransactionEnrichedDto.class, "rules-engine-group", objectMapper);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TransactionEnrichedDto>
+    enrichedKafkaListenerContainerFactory(ConsumerFactory<String, TransactionEnrichedDto> enrichedConsumerFactory) {
+        return buildFactory(enrichedConsumerFactory);
+    }
+
+    // 3. Factory for "rule-scores" topic → RuleScoreDto
+    @Bean
+    public ConsumerFactory<String, RuleScoreDto> ruleScoreConsumerFactory(ObjectMapper objectMapper) {
+        return buildConsumerFactory(RuleScoreDto.class, "aggregator-group", objectMapper);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, RuleScoreDto>
+    ruleScoreKafkaListenerContainerFactory(ConsumerFactory<String, RuleScoreDto> ruleScoreConsumerFactory) {
+        return buildFactory(ruleScoreConsumerFactory);
+    }
+
+    // 4. Factory for "ml-scores" topic → MlScoreDto
+    @Bean
+    public ConsumerFactory<String, MlScoreDto> mlScoreConsumerFactory(ObjectMapper objectMapper) {
+        return buildConsumerFactory(MlScoreDto.class, "aggregator-group", objectMapper);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, MlScoreDto>
+    mlScoreKafkaListenerContainerFactory(ConsumerFactory<String, MlScoreDto> mlScoreConsumerFactory) {
+        return buildFactory(mlScoreConsumerFactory);
+    }
+
+    // 5. Factory for "risk-results" topic → RiskAssessmentDto
+    @Bean
+    public ConsumerFactory<String, RiskAssessmentDto> riskResultConsumerFactory(ObjectMapper objectMapper) {
+        return buildConsumerFactory(RiskAssessmentDto.class, "websocket-broadcaster-group", objectMapper);
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, RiskAssessmentDto>
+    riskResultKafkaListenerContainerFactory(ConsumerFactory<String, RiskAssessmentDto> riskResultConsumerFactory) {
+        return buildFactory(riskResultConsumerFactory);
+    }
+
+    // ======================== TOPICS ========================
 
     @Bean
     public NewTopic transactionsIncomingTopic() {
