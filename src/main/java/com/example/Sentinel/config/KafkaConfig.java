@@ -1,5 +1,6 @@
 package com.example.Sentinel.config;
 
+import com.example.Sentinel.dto.MoneyTransferDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.apache.kafka.clients.admin.NewTopic;
@@ -49,36 +50,33 @@ public class KafkaConfig {
     }
 
     @Bean
-    public ConsumerFactory<String, Object> consumerFactory(ObjectMapper objectMapper) {
-        Map<String, Object> config = new HashMap<>();
-        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
-        config.put(ConsumerConfig.GROUP_ID_CONFIG, "sentinel-group");
-        config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ErrorHandlingDeserializer.class);
-        config.put(ErrorHandlingDeserializer.KEY_DESERIALIZER_CLASS, StringDeserializer.class);
-        config.put(ErrorHandlingDeserializer.VALUE_DESERIALIZER_CLASS, JsonDeserializer.class);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-        config.put(JsonDeserializer.VALUE_DEFAULT_TYPE, "java.lang.Object");
+    public ConsumerFactory<String, MoneyTransferDto> consumerFactory(ObjectMapper objectMapper) {
 
-        ErrorHandlingDeserializer<Object> errorHandlingDeserializer =
-                new ErrorHandlingDeserializer<>(new JsonDeserializer<>(objectMapper));
+        JsonDeserializer<MoneyTransferDto> deserializer =
+                new JsonDeserializer<>(MoneyTransferDto.class, objectMapper);
 
-        return new DefaultKafkaConsumerFactory<>(config,
+        deserializer.addTrustedPackages("*");
+
+        Map<String,Object> config = new HashMap<>();
+
+        config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,"localhost:9092");
+        config.put(ConsumerConfig.GROUP_ID_CONFIG,"risk-analyzer-group");
+
+        return new DefaultKafkaConsumerFactory<>(
+                config,
                 new StringDeserializer(),
-                errorHandlingDeserializer);
+                deserializer
+        );
     }
 
     @Bean
-    public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory) {
-        ConcurrentKafkaListenerContainerFactory<String, Object> factory =
+    public ConcurrentKafkaListenerContainerFactory<String, MoneyTransferDto>
+    kafkaListenerContainerFactory(ConsumerFactory<String, MoneyTransferDto> consumerFactory) {
+
+        ConcurrentKafkaListenerContainerFactory<String, MoneyTransferDto> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
+
         factory.setConsumerFactory(consumerFactory);
-
-        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new FixedBackOff(1000L, 3L));
-        factory.setCommonErrorHandler(errorHandler);
-
         return factory;
     }
 
