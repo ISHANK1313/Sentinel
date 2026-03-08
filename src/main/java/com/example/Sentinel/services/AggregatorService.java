@@ -119,7 +119,9 @@ public class AggregatorService {
         double finalScore;
 
         if (ruleScore != null && mlScore != null) {
-            finalScore = (ruleScore * 0.6) + (mlScore * 0.4);
+            // Rule engine score is already weighted (max ~100),
+            // ML score is 0-100. Blend 70/30 so rules dominate.
+            finalScore = (ruleScore * 0.7) + (mlScore * 0.3);
         } else if (ruleScore != null) {
             finalScore = ruleScore;
         } else {
@@ -184,6 +186,8 @@ public class AggregatorService {
         dto.setId(risk.getId());
         dto.setRequestId(requestId);
         dto.setTransactionId(risk.getTransaction().getTransactionId());
+        dto.setUserId(risk.getTransaction().getUsers().getUserId());
+        dto.setAmount(risk.getTransaction().getAmount());
 
         dto.setAmountScore(risk.getAmountScore());
         dto.setVelocityScore(risk.getVelocityScore());

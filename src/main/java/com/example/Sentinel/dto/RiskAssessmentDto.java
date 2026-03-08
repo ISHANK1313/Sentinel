@@ -9,6 +9,8 @@ public class RiskAssessmentDto {
     private Long id;
     private String requestId;
     private Long transactionId;
+    private Long userId;
+    private Double amount;
     private Long locationScore;
     private Long amountScore;
     private Long timeScore;
@@ -51,6 +53,22 @@ public class RiskAssessmentDto {
 
     public void setTransactionId(Long transactionId) {
         this.transactionId = transactionId;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
+
+    public void setAmount(Double amount) {
+        this.amount = amount;
     }
 
     public Long getLocationScore() {

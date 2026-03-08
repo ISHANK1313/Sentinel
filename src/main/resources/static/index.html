@@ -111,17 +111,9 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .stat-card.danger {
-            border-left-color: var(--danger);
-        }
-
-        .stat-card.warning {
-            border-left-color: var(--warning);
-        }
-
-        .stat-card.success {
-            border-left-color: var(--success);
-        }
+        .stat-card.danger { border-left-color: var(--danger); }
+        .stat-card.warning { border-left-color: var(--warning); }
+        .stat-card.success { border-left-color: var(--success); }
 
         .stat-label {
             font-size: 0.875rem;
@@ -142,13 +134,8 @@
             margin-top: 0.5rem;
         }
 
-        .stat-change.up {
-            color: var(--danger);
-        }
-
-        .stat-change.down {
-            color: var(--success);
-        }
+        .stat-change.up { color: var(--danger); }
+        .stat-change.down { color: var(--success); }
 
         /* Grid Layout */
         .dashboard-grid {
@@ -159,9 +146,7 @@
         }
 
         @media (max-width: 1024px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
+            .dashboard-grid { grid-template-columns: 1fr; }
         }
 
         /* Card */
@@ -202,30 +187,13 @@
             animation: slideIn 0.3s ease-out;
         }
 
-        .alert-item.high {
-            border-left-color: var(--danger);
-            background: #fee2e2;
-        }
-
-        .alert-item.medium {
-            border-left-color: var(--warning);
-            background: #fef3c7;
-        }
-
-        .alert-item.low {
-            border-left-color: var(--success);
-            background: #d1fae5;
-        }
+        .alert-item.high { border-left-color: var(--danger); background: #fee2e2; }
+        .alert-item.medium { border-left-color: var(--warning); background: #fef3c7; }
+        .alert-item.low { border-left-color: var(--success); background: #d1fae5; }
 
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .alert-header {
@@ -235,20 +203,10 @@
             margin-bottom: 0.5rem;
         }
 
-        .alert-risk {
-            font-weight: 700;
-            font-size: 1.125rem;
-        }
+        .alert-risk { font-weight: 700; font-size: 1.125rem; }
+        .alert-time { font-size: 0.75rem; color: #6b7280; }
 
-        .alert-time {
-            font-size: 0.75rem;
-            color: #6b7280;
-        }
-
-        .alert-details {
-            font-size: 0.875rem;
-            color: #374151;
-        }
+        .alert-details { font-size: 0.875rem; color: #374151; }
 
         .alert-rules {
             margin-top: 0.5rem;
@@ -266,9 +224,7 @@
         }
 
         /* Search Section */
-        .search-section {
-            margin-bottom: 1.5rem;
-        }
+        .search-section { margin-bottom: 1.5rem; }
 
         .search-box {
             display: flex;
@@ -283,11 +239,7 @@
             gap: 0.5rem;
         }
 
-        .input-label {
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #374151;
-        }
+        .input-label { font-size: 0.875rem; font-weight: 500; color: #374151; }
 
         input {
             padding: 0.75rem;
@@ -297,10 +249,7 @@
             transition: border-color 0.2s;
         }
 
-        input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
+        input:focus { outline: none; border-color: var(--primary); }
 
         .btn {
             padding: 0.75rem 1.5rem;
@@ -312,34 +261,15 @@
             font-size: 1rem;
         }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: var(--light);
-            color: #374151;
-        }
-
-        .btn-secondary:hover {
-            background: #e5e7eb;
-        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-secondary { background: var(--light); color: #374151; }
+        .btn-secondary:hover { background: #e5e7eb; }
 
         /* Table */
-        .table-container {
-            overflow-x: auto;
-        }
+        .table-container { overflow-x: auto; }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
+        table { width: 100%; border-collapse: collapse; }
 
         th {
             background: var(--light);
@@ -358,9 +288,7 @@
             font-size: 0.875rem;
         }
 
-        tr:hover {
-            background: var(--light);
-        }
+        tr:hover { background: var(--light); }
 
         .badge {
             padding: 0.25rem 0.75rem;
@@ -370,43 +298,17 @@
             text-transform: uppercase;
         }
 
-        .badge-high {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .badge-medium {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .badge-low {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .badge-flagged {
-            background: #fecaca;
-            color: #991b1b;
-        }
-
-        .badge-unflagged {
-            background: #d1fae5;
-            color: #065f46;
-        }
+        .badge-high { background: #fee2e2; color: #991b1b; }
+        .badge-medium { background: #fef3c7; color: #92400e; }
+        .badge-low { background: #d1fae5; color: #065f46; }
+        .badge-flagged { background: #fecaca; color: #991b1b; }
+        .badge-unflagged { background: #d1fae5; color: #065f46; }
 
         /* Chart Container */
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
+        .chart-container { position: relative; height: 300px; }
 
         /* Loading */
-        .loading {
-            text-align: center;
-            padding: 2rem;
-            color: #6b7280;
-        }
+        .loading { text-align: center; padding: 2rem; color: #6b7280; }
 
         .spinner {
             border: 3px solid var(--light);
@@ -424,36 +326,14 @@
         }
 
         /* Empty State */
-        .empty-state {
-            text-align: center;
-            padding: 3rem;
-            color: #6b7280;
-        }
-
-        .empty-state-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            opacity: 0.5;
-        }
+        .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
+        .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
 
         /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: var(--light);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
-        }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--light); }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
@@ -584,21 +464,31 @@
     const API_BASE = 'http://localhost:8080';
     const WS_URL = 'http://localhost:8080/ws-sockjs';
 
-    // State
+    // State — alertsData now survives refresh via sessionStorage
     let stompClient = null;
-    let alertsData = [];
+    let alertsData = JSON.parse(sessionStorage.getItem('sentinelAlerts') || '[]');
     let riskChart = null;
-    let stats = {
+    let stats = JSON.parse(sessionStorage.getItem('sentinelStats') || JSON.stringify({
         highRisk: 0,
         totalTxn: 0,
         avgRisk: 0,
         flaggedRate: 0
-    };
+    }));
+
+    function persistState() {
+        sessionStorage.setItem('sentinelAlerts', JSON.stringify(alertsData));
+        sessionStorage.setItem('sentinelStats', JSON.stringify(stats));
+    }
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         initWebSocket();
         initChart();
+        // Restore stats display from sessionStorage
+        refreshStatsDisplay();
+        updateChart();
+        // Restore alerts feed from sessionStorage
+        restoreAlerts();
         loadRecentTransactions();
     });
 
@@ -606,6 +496,7 @@
     function initWebSocket() {
         const socket = new SockJS(WS_URL);
         stompClient = Stomp.over(socket);
+        stompClient.debug = null; // suppress noisy logs
 
         stompClient.connect({},
             (frame) => {
@@ -621,7 +512,7 @@
             (error) => {
                 updateConnectionStatus(false);
                 console.error('Connection error:', error);
-                setTimeout(initWebSocket, 5000); // Reconnect
+                setTimeout(initWebSocket, 5000);
             }
         );
     }
@@ -629,7 +520,6 @@
     function updateConnectionStatus(connected) {
         const dot = document.getElementById('statusDot');
         const text = document.getElementById('statusText');
-
         if (connected) {
             dot.classList.add('connected');
             text.textContent = 'Connected';
@@ -639,7 +529,7 @@
         }
     }
 
-    // Handle New Alert
+    // Handle New Alert from WebSocket
     function handleNewAlert(alert) {
         console.log('New alert:', alert);
 
@@ -649,6 +539,8 @@
         updateStats(alert);
         renderAlert(alert);
         updateChart();
+        updateRecentTable();
+        persistState();
     }
 
     function renderAlert(alert) {
@@ -670,10 +562,10 @@
                 <span class="alert-time">${new Date().toLocaleTimeString()}</span>
             </div>
             <div class="alert-details">
-                Transaction ID: ${alert.transactionId} | User ID: ${alert.requestId?.split('-')[0] || 'N/A'}
+                Transaction ID: ${alert.transactionId || 'N/A'} | User ID: ${alert.userId || 'N/A'}
                 <br>
-                Amount: ₹${alert.overallScore ? (alert.overallScore * 1000).toFixed(0) : '0'} |
-                ML Score: ${alert.mlScore?.toFixed(1) || 'N/A'}%
+                Amount: ₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'} |
+                ML Score: ${alert.mlScore != null ? alert.mlScore.toFixed(1) : 'N/A'}%
             </div>
             ${alert.triggeredRules && alert.triggeredRules.length > 0 ? `
             <div class="alert-rules">
@@ -690,8 +582,45 @@
         }
     }
 
+    function restoreAlerts() {
+        if (alertsData.length === 0) return;
+        const feed = document.getElementById('alertsFeed');
+        const emptyState = feed.querySelector('.empty-state');
+        if (emptyState) emptyState.remove();
+
+        // Render stored alerts (most recent first, already sorted)
+        alertsData.slice(0, 20).forEach(alert => {
+            const riskLevel = alert.fraudPossibility || 'MEDIUM';
+            const riskClass = riskLevel.toLowerCase();
+            const riskScore = alert.overallScore || 0;
+
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert-item ${riskClass}`;
+            alertDiv.innerHTML = `
+                <div class="alert-header">
+                    <span class="alert-risk">${riskLevel} RISK - ${riskScore.toFixed(1)}%</span>
+                    <span class="alert-time">restored</span>
+                </div>
+                <div class="alert-details">
+                    Transaction ID: ${alert.transactionId || 'N/A'} | User ID: ${alert.userId || 'N/A'}
+                    <br>
+                    Amount: ₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'} |
+                    ML Score: ${alert.mlScore != null ? alert.mlScore.toFixed(1) : 'N/A'}%
+                </div>
+                ${alert.triggeredRules && alert.triggeredRules.length > 0 ? `
+                <div class="alert-rules">
+                    ${alert.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
+                </div>
+                ` : ''}
+            `;
+            feed.appendChild(alertDiv);
+        });
+    }
+
     function clearAlerts() {
         alertsData = [];
+        stats = { highRisk: 0, totalTxn: 0, avgRisk: 0, flaggedRate: 0 };
+        persistState();
         const feed = document.getElementById('alertsFeed');
         feed.innerHTML = `
             <div class="empty-state">
@@ -699,14 +628,14 @@
                 <p>Alerts cleared. Waiting for new alerts...</p>
             </div>
         `;
-        updateStats();
+        refreshStatsDisplay();
+        updateChart();
     }
 
     // Update Stats
     function updateStats(newAlert = null) {
         if (newAlert) {
             stats.totalTxn++;
-
             if (newAlert.fraudPossibility === 'HIGH') {
                 stats.highRisk++;
             }
@@ -722,7 +651,10 @@
         const flaggedCount = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
         stats.flaggedRate = alertsData.length > 0 ? (flaggedCount / alertsData.length) * 100 : 0;
 
-        // Update UI
+        refreshStatsDisplay();
+    }
+
+    function refreshStatsDisplay() {
         document.getElementById('statHighRisk').textContent = stats.highRisk;
         document.getElementById('statTotalTxn').textContent = stats.totalTxn;
         document.getElementById('statAvgRisk').textContent = stats.avgRisk.toFixed(1) + '%';
@@ -746,9 +678,7 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
+                    legend: { position: 'bottom' }
                 }
             }
         });
@@ -758,37 +688,21 @@
         const low = alertsData.filter(a => a.fraudPossibility === 'LOW').length;
         const medium = alertsData.filter(a => a.fraudPossibility === 'MEDIUM').length;
         const high = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
-
         riskChart.data.datasets[0].data = [low, medium, high];
         riskChart.update();
     }
 
-    // Load Recent Transactions
-    async function loadRecentTransactions() {
-        // For demo, we'll use alerts data
-        // In production, call API endpoint
+    // Update recent transactions table from in-memory alertsData
+    function updateRecentTable() {
         const tbody = document.getElementById('transactionTable');
-
-        if (alertsData.length === 0) {
-            tbody.innerHTML = `
-                <tr>
-                    <td colspan="7">
-                        <div class="empty-state">
-                            <div class="empty-state-icon">📭</div>
-                            <p>No transactions yet</p>
-                        </div>
-                    </td>
-                </tr>
-            `;
-            return;
-        }
+        if (alertsData.length === 0) return;
 
         tbody.innerHTML = alertsData.slice(0, 10).map(alert => `
             <tr>
                 <td>${alert.transactionId || 'N/A'}</td>
-                <td>${alert.requestId?.split('-')[0] || 'N/A'}</td>
-                <td>₹${alert.overallScore ? (alert.overallScore * 1000).toFixed(0) : '0'}</td>
-                <td>${alert.overallScore?.toFixed(1) || '0'}%</td>
+                <td>${alert.userId || 'N/A'}</td>
+                <td>₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'}</td>
+                <td>${alert.overallScore != null ? alert.overallScore.toFixed(1) : '0'}%</td>
                 <td>
                     <span class="badge badge-${(alert.fraudPossibility || 'medium').toLowerCase()}">
                         ${alert.fraudPossibility || 'MEDIUM'}
@@ -804,7 +718,29 @@
         `).join('');
     }
 
-    // Search Transactions
+    // Load Recent Transactions — uses alertsData (from sessionStorage) first,
+    // no heavy DB call needed
+    async function loadRecentTransactions() {
+        const tbody = document.getElementById('transactionTable');
+
+        if (alertsData.length > 0) {
+            updateRecentTable();
+            return;
+        }
+
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No transactions yet. Submit a transaction to see data here.</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }
+
+    // Search Transactions via existing REST API
     async function searchTransactions() {
         const userId = document.getElementById('userIdInput').value;
         const txnId = document.getElementById('txnIdInput').value;
@@ -825,7 +761,8 @@
             const response = await fetch(url);
 
             if (!response.ok) {
-                throw new Error('Transaction not found');
+                const errorText = await response.text();
+                throw new Error(errorText || 'Transaction not found');
             }
 
             const data = await response.json();
@@ -838,21 +775,34 @@
     function displaySearchResults(transactions) {
         const tbody = document.getElementById('transactionTable');
 
-        tbody.innerHTML = transactions.map(txn => `
+        tbody.innerHTML = transactions.map(txn => {
+            // Handle LocalDateTime returned as array [year, month, day, hour, min, sec, nano]
+            let timeStr = 'N/A';
+            if (txn.timeOfTransaction) {
+                if (Array.isArray(txn.timeOfTransaction)) {
+                    const [y, mo, d, h, mi, s] = txn.timeOfTransaction;
+                    timeStr = new Date(y, mo - 1, d, h || 0, mi || 0, s || 0).toLocaleString();
+                } else {
+                    timeStr = new Date(txn.timeOfTransaction).toLocaleString();
+                }
+            }
+
+            return `
             <tr>
                 <td>${txn.transactionId}</td>
                 <td>${txn.userId}</td>
-                <td>₹${txn.amount.toFixed(2)}</td>
+                <td>₹${txn.amount != null ? Number(txn.amount).toFixed(2) : '0.00'}</td>
                 <td>N/A</td>
                 <td>N/A</td>
                 <td>
                     <span class="badge ${txn.status === 'FLAGGED' ? 'badge-flagged' : 'badge-unflagged'}">
-                        ${txn.status}
+                        ${txn.status || 'UNFLAGGED'}
                     </span>
                 </td>
-                <td>${new Date(txn.timeOfTransaction).toLocaleString()}</td>
+                <td>${timeStr}</td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     }
 </script>
 </body>
