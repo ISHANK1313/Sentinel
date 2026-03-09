@@ -35,7 +35,6 @@ public class AggregatorService {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
-    // Uses "ruleScoreKafkaListenerContainerFactory" → RuleScoreDto
     @KafkaListener(topics = "rule-scores", groupId = "aggregator-group",
             containerFactory = "ruleScoreKafkaListenerContainerFactory")
     public void consumeRuleScore(RuleScoreDto msg) {
@@ -43,7 +42,6 @@ public class AggregatorService {
         tryAggregate(msg.getRequestId());
     }
 
-    // Uses "mlScoreKafkaListenerContainerFactory" → MlScoreDto
     @KafkaListener(topics = "ml-scores", groupId = "aggregator-group",
             containerFactory = "mlScoreKafkaListenerContainerFactory")
     public void consumeMlScore(MlScoreDto msg) {
@@ -57,19 +55,14 @@ public class AggregatorService {
         MlScoreDto ml = mlScores.get(requestId);
 
         if (rule != null && ml != null) {
-
             aggregateAndPublish(requestId, rule, ml);
-
         } else if (rule != null) {
-
             scheduler.schedule(() -> {
                 if (!mlScores.containsKey(requestId)) {
                     aggregateAndPublish(requestId, rule, null);
                 }
             }, 3, TimeUnit.SECONDS);
-
         } else if (ml != null) {
-
             scheduler.schedule(() -> {
                 if (!ruleScores.containsKey(requestId)) {
                     aggregateAndPublish(requestId, null, ml);
@@ -96,7 +89,6 @@ public class AggregatorService {
         Double mlScore = null;
 
         if (rule != null) {
-
             risk.setAmountScore(rule.getAmountScore());
             risk.setVelocityScore(rule.getVelocityScore());
             risk.setLocationScore(rule.getLocationScore());
@@ -107,7 +99,6 @@ public class AggregatorService {
             risk.setStructuringScore(rule.getStructuringScore());
             risk.setBeneficiaryScore(rule.getBeneficiaryScore());
             risk.setSequenceScore(rule.getSequenceScore());
-
             ruleScore = rule.getOverallScore();
         }
 
@@ -119,17 +110,19 @@ public class AggregatorService {
         double finalScore;
 
         if (ruleScore != null && mlScore != null) {
-            // Rule engine score is already weighted (max ~100),
-            // ML score is 0-100. Blend 70/30 so rules dominate.
-            finalScore = (ruleScore * 0.8) + (mlScore * 0.2);
+            // Both rule engine (0-100) and ML (0-100) available
+            // Blend: 60% rules, 40% ML
+            finalScore = (ruleScore * 0.6) + (mlScore * 0.4);
         } else if (ruleScore != null) {
             finalScore = ruleScore;
         } else {
             finalScore = mlScore;
         }
 
-        risk.setOverallScore(finalScore);
+        // Cap at 100
+        finalScore = Math.min(finalScore, 100.0);
 
+        risk.setOverallScore(finalScore);
         risk.setFraudPossibility(determineFraudLevel(finalScore));
 
         List<String> triggered = determineTriggeredRules(risk);
@@ -143,61 +136,51 @@ public class AggregatorService {
         riskAssessmentRepo.save(risk);
 
         RiskAssessmentDto dto = convertToDto(risk, requestId);
-
         kafkaTemplate.send("risk-results", dto);
     }
 
     private String determineFraudLevel(double score) {
-
         if (score <= 30) return "LOW";
         if (score <= 60) return "MEDIUM";
         return "HIGH";
     }
 
     private List<String> determineTriggeredRules(RiskAssessment risk) {
-
         List<String> rules = new ArrayList<>();
+
         if (risk.getAmountScore() != null && risk.getAmountScore() >= 10)
             rules.add("Amount Rule");
-
-        if (risk.getVelocityScore() != null && risk.getVelocityScore() >= 20)
+        if (risk.getVelocityScore() != null && risk.getVelocityScore() >= 15)
             rules.add("Velocity Rule");
-
         if (risk.getLocationScore() != null && risk.getLocationScore() >= 5)
             rules.add("Location Rule");
-
-        if (risk.getStructuringScore() != null && risk.getStructuringScore() >= 30)
+        if (risk.getStructuringScore() != null && risk.getStructuringScore() >= 10)
             rules.add("Structuring Rule");
-
-        if (risk.getBeneficiaryScore() != null && risk.getBeneficiaryScore() >= 15)
+        if (risk.getBeneficiaryScore() != null && risk.getBeneficiaryScore() >= 5)
             rules.add("Beneficiary Rule");
-
         if (risk.getMlScore() != null && risk.getMlScore() >= 60)
             rules.add("ML Model Alert");
-        if(risk.getCrossBorderScore()!=null&&risk.getCrossBorderScore()>=10)
+        if (risk.getCrossBorderScore() != null && risk.getCrossBorderScore() >= 10)
             rules.add("Cross Border Rule");
-        if(risk.getDeviceFingerPrintScore()!=null&&risk.getDeviceFingerPrintScore()>=5)
+        if (risk.getDeviceFingerPrintScore() != null && risk.getDeviceFingerPrintScore() >= 5)
             rules.add("Device Finger Print Rule");
-        if(risk.getTimeScore()!=null&&risk.getTimeScore()>=15)
+        if (risk.getTimeScore() != null && risk.getTimeScore() >= 5)
             rules.add("Time Of Transaction Rule");
-        if(risk.getSequenceScore()!=null&&risk.getSequenceScore()>=10)
-             rules.add("Sequence Rule");
-        if(risk.getMerchantCategoryScore()!=null&&risk.getMerchantCategoryScore()>=15)
+        if (risk.getSequenceScore() != null && risk.getSequenceScore() >= 10)
+            rules.add("Sequence Rule");
+        if (risk.getMerchantCategoryScore() != null && risk.getMerchantCategoryScore() >= 10)
             rules.add("Merchant Category Rule");
 
         return rules;
     }
 
     private RiskAssessmentDto convertToDto(RiskAssessment risk, String requestId) {
-
         RiskAssessmentDto dto = new RiskAssessmentDto();
-
         dto.setId(risk.getId());
         dto.setRequestId(requestId);
         dto.setTransactionId(risk.getTransaction().getTransactionId());
         dto.setUserId(risk.getTransaction().getUsers().getUserId());
         dto.setAmount(risk.getTransaction().getAmount());
-
         dto.setAmountScore(risk.getAmountScore());
         dto.setVelocityScore(risk.getVelocityScore());
         dto.setLocationScore(risk.getLocationScore());
@@ -208,13 +191,10 @@ public class AggregatorService {
         dto.setStructuringScore(risk.getStructuringScore());
         dto.setBeneficiaryScore(risk.getBeneficiaryScore());
         dto.setSequenceScore(risk.getSequenceScore());
-
         dto.setOverallScore(risk.getOverallScore());
         dto.setMlScore(risk.getMlScore());
-
         dto.setFraudPossibility(risk.getFraudPossibility());
         dto.setTriggeredRules(risk.getTriggeredRules());
-
         return dto;
     }
 }

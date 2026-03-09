@@ -8,694 +8,254 @@
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #3b82f6;
-            --success: #10b981;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --dark: #1f2937;
-            --light: #f3f4f6;
-            --border: #e5e7eb;
+            --primary: #3b82f6; --success: #10b981; --warning: #f59e0b;
+            --danger: #ef4444; --dark: #1f2937; --light: #f3f4f6; --border: #e5e7eb;
         }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f9fafb;
-            color: #111827;
-            line-height: 1.6;
-        }
-
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 1.5rem 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        .header-content {
-            max-width: 1400px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.75rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .connection-status {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(255,255,255,0.2);
-            border-radius: 8px;
-            font-size: 0.875rem;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ef4444;
-            animation: pulse 2s infinite;
-        }
-
-        .status-dot.connected {
-            background: #10b981;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        /* Container */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* Stats Grid */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            border-left: 4px solid var(--primary);
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f9fafb; color: #111827; line-height: 1.6; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 1.5rem 2rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header-content { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+        .connection-status { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: rgba(255,255,255,0.2); border-radius: 8px; font-size: 0.875rem; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: pulse 2s infinite; }
+        .status-dot.connected { background: #10b981; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border-left: 4px solid var(--primary); transition: transform 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
         .stat-card.danger { border-left-color: var(--danger); }
         .stat-card.warning { border-left-color: var(--warning); }
         .stat-card.success { border-left-color: var(--success); }
-
-        .stat-label {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .stat-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .stat-change {
-            font-size: 0.875rem;
-            margin-top: 0.5rem;
-        }
-
+        .stat-label { font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #111827; }
+        .stat-change { font-size: 0.875rem; margin-top: 0.5rem; }
         .stat-change.up { color: var(--danger); }
         .stat-change.down { color: var(--success); }
-
-        /* Grid Layout */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .dashboard-grid { grid-template-columns: 1fr; }
-        }
-
-        /* Card */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 2px solid var(--light);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #111827;
-        }
-
-        /* Alerts Feed */
-        .alerts-feed {
-            max-height: 600px;
-            overflow-y: auto;
-        }
-
-        .alert-item {
-            padding: 1rem;
-            border-left: 4px solid var(--warning);
-            background: #fef3c7;
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            animation: slideIn 0.3s ease-out;
-        }
-
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        @media (max-width: 1024px) { .dashboard-grid { grid-template-columns: 1fr; } }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--light); }
+        .card-title { font-size: 1.25rem; font-weight: 600; color: #111827; }
+        .alerts-feed { max-height: 600px; overflow-y: auto; }
+        .alert-item { padding: 1rem; border-left: 4px solid var(--warning); background: #fef3c7; border-radius: 8px; margin-bottom: 1rem; animation: slideIn 0.3s ease-out; }
         .alert-item.high { border-left-color: var(--danger); background: #fee2e2; }
         .alert-item.medium { border-left-color: var(--warning); background: #fef3c7; }
         .alert-item.low { border-left-color: var(--success); background: #d1fae5; }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .alert-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.5rem;
-        }
-
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .alert-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
         .alert-risk { font-weight: 700; font-size: 1.125rem; }
         .alert-time { font-size: 0.75rem; color: #6b7280; }
-
         .alert-details { font-size: 0.875rem; color: #374151; }
-
-        .alert-rules {
-            margin-top: 0.5rem;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .rule-badge {
-            background: rgba(0,0,0,0.1);
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-        }
-
-        /* Search Section */
-        .search-section { margin-bottom: 1.5rem; }
-
-        .search-box {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-
-        .input-group {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
+        .alert-rules { margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+        .rule-badge { background: rgba(0,0,0,0.1); padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 500; }
+        .search-box { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .input-group { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 0.5rem; }
         .input-label { font-size: 0.875rem; font-weight: 500; color: #374151; }
-
-        input {
-            padding: 0.75rem;
-            border: 2px solid var(--border);
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.2s;
-        }
-
+        input { padding: 0.75rem; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border-color 0.2s; }
         input:focus { outline: none; border-color: var(--primary); }
-
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 1rem;
-        }
-
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
         .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #2563eb; transform: translateY(-1px); }
+        .btn-primary:hover { background: #2563eb; }
         .btn-secondary { background: var(--light); color: #374151; }
         .btn-secondary:hover { background: #e5e7eb; }
-
-        /* Table */
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-warning { background: var(--warning); color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-group { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end; }
         .table-container { overflow-x: auto; }
-
         table { width: 100%; border-collapse: collapse; }
-
-        th {
-            background: var(--light);
-            padding: 1rem;
-            text-align: left;
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.875rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.875rem;
-        }
-
+        th { background: var(--light); padding: 1rem; text-align: left; font-weight: 600; color: #374151; font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        td { padding: 1rem; border-bottom: 1px solid var(--border); font-size: 0.875rem; }
         tr:hover { background: var(--light); }
-
-        .badge {
-            padding: 0.25rem 0.75rem;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
+        .badge { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
         .badge-high { background: #fee2e2; color: #991b1b; }
         .badge-medium { background: #fef3c7; color: #92400e; }
         .badge-low { background: #d1fae5; color: #065f46; }
         .badge-flagged { background: #fecaca; color: #991b1b; }
         .badge-unflagged { background: #d1fae5; color: #065f46; }
-
-        /* Chart Container */
         .chart-container { position: relative; height: 300px; }
-
-        /* Loading */
-        .loading { text-align: center; padding: 2rem; color: #6b7280; }
-
-        .spinner {
-            border: 3px solid var(--light);
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Empty State */
         .empty-state { text-align: center; padding: 3rem; color: #6b7280; }
         .empty-state-icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
-
-        /* Scrollbar */
+        .loading { text-align: center; padding: 2rem; color: #6b7280; }
+        .spinner { border: 3px solid var(--light); border-top: 3px solid var(--primary); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .detail-item { padding: 0.5rem; background: var(--light); border-radius: 6px; }
+        .detail-label { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; }
+        .detail-value { font-size: 1rem; font-weight: 600; }
+        .result-panel { margin-top: 1rem; padding: 1rem; background: var(--light); border-radius: 8px; display: none; }
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: var(--light); }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body>
-<!-- Header -->
 <div class="header">
     <div class="header-content">
-        <div class="logo">
-            <span>🛡️</span>
-            <span>Sentinel Dashboard</span>
-        </div>
+        <div class="logo"><span>🛡️</span><span>Sentinel Dashboard</span></div>
         <div class="connection-status">
             <div class="status-dot" id="statusDot"></div>
             <span id="statusText">Connecting...</span>
         </div>
     </div>
 </div>
-
-<!-- Main Container -->
 <div class="container">
-    <!-- Stats Grid -->
+    <!-- Stats -->
     <div class="stats-grid">
-        <div class="stat-card danger">
-            <div class="stat-label">High Risk Alerts</div>
-            <div class="stat-value" id="statHighRisk">0</div>
-            <div class="stat-change up" id="statHighRiskChange">+0 today</div>
-        </div>
-        <div class="stat-card warning">
-            <div class="stat-label">Total Transactions</div>
-            <div class="stat-value" id="statTotalTxn">0</div>
-            <div class="stat-change" id="statTotalTxnChange">Last 24h</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label">Avg Risk Score</div>
-            <div class="stat-value" id="statAvgRisk">0%</div>
-            <div class="stat-change" id="statAvgRiskChange">Overall</div>
-        </div>
-        <div class="stat-card success">
-            <div class="stat-label">Flagged Rate</div>
-            <div class="stat-value" id="statFlaggedRate">0%</div>
-            <div class="stat-change down" id="statFlaggedRateChange">↓ Good</div>
-        </div>
+        <div class="stat-card danger"><div class="stat-label">High Risk Alerts</div><div class="stat-value" id="statHighRisk">0</div><div class="stat-change up" id="statHighRiskChange">+0 today</div></div>
+        <div class="stat-card warning"><div class="stat-label">Total Transactions</div><div class="stat-value" id="statTotalTxn">0</div><div class="stat-change">Last 24h</div></div>
+        <div class="stat-card"><div class="stat-label">Avg Risk Score</div><div class="stat-value" id="statAvgRisk">0%</div><div class="stat-change">Overall</div></div>
+        <div class="stat-card success"><div class="stat-label">Flagged Rate</div><div class="stat-value" id="statFlaggedRate">0%</div><div class="stat-change down">↓ Good</div></div>
     </div>
 
-    <!-- Dashboard Grid -->
+    <!-- Alerts + Chart -->
     <div class="dashboard-grid">
-        <!-- Real-time Alerts -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">🚨 Real-time Alerts</h2>
-                <button class="btn btn-secondary" onclick="clearAlerts()">Clear</button>
-            </div>
-            <div class="alerts-feed" id="alertsFeed">
-                <div class="empty-state">
-                    <div class="empty-state-icon">📊</div>
-                    <p>Waiting for fraud alerts...</p>
-                </div>
-            </div>
+        <div class="card" style="margin-bottom:0">
+            <div class="card-header"><h2 class="card-title">🚨 Real-time Alerts</h2><button class="btn btn-secondary" onclick="clearAlerts()">Clear</button></div>
+            <div class="alerts-feed" id="alertsFeed"><div class="empty-state"><div class="empty-state-icon">📊</div><p>Waiting for fraud alerts...</p></div></div>
         </div>
-
-        <!-- Risk Distribution Chart -->
-        <div class="card">
-            <div class="card-header">
-                <h2 class="card-title">📈 Risk Distribution</h2>
-            </div>
-            <div class="chart-container">
-                <canvas id="riskChart"></canvas>
-            </div>
+        <div class="card" style="margin-bottom:0">
+            <div class="card-header"><h2 class="card-title">📈 Risk Distribution</h2></div>
+            <div class="chart-container"><canvas id="riskChart"></canvas></div>
         </div>
     </div>
 
-    <!-- User Search -->
-    <div class="card search-section">
-        <div class="card-header">
-            <h2 class="card-title">🔍 Transaction Search</h2>
-        </div>
-        <div class="search-box">
-            <div class="input-group">
-                <label class="input-label">User ID</label>
-                <input type="number" id="userIdInput" placeholder="Enter user ID">
-            </div>
-            <div class="input-group">
-                <label class="input-label">Transaction ID</label>
-                <input type="number" id="txnIdInput" placeholder="Enter transaction ID">
-            </div>
-            <div class="input-group" style="justify-content: flex-end;">
-                <label class="input-label">&nbsp;</label>
-                <button class="btn btn-primary" onclick="searchTransactions()">Search</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Transaction Table -->
+    <!-- User Details Lookup -->
     <div class="card">
-        <div class="card-header">
-            <h2 class="card-title">💳 Recent Transactions</h2>
-            <button class="btn btn-secondary" onclick="refreshFromDB()">Refresh</button>
+        <div class="card-header"><h2 class="card-title">👤 User Details Lookup</h2></div>
+        <div class="search-box">
+            <div class="input-group"><label class="input-label">User ID</label><input type="number" id="userLookupId" placeholder="Enter user ID"></div>
+            <div class="input-group" style="justify-content:flex-end"><label class="input-label">&nbsp;</label><button class="btn btn-primary" onclick="lookupUser()">Get User Details</button></div>
         </div>
+        <div class="result-panel" id="userDetailPanel"></div>
+    </div>
+
+    <!-- Transaction Search -->
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">��� Transaction Search</h2></div>
+        <div class="search-box">
+            <div class="input-group"><label class="input-label">User ID</label><input type="number" id="userIdInput" placeholder="Enter user ID"></div>
+            <div class="input-group"><label class="input-label">Transaction ID</label><input type="number" id="txnIdInput" placeholder="Enter transaction ID"></div>
+            <div class="btn-group">
+                <button class="btn btn-primary" onclick="searchByTxnId()">Search by Txn ID</button>
+                <button class="btn btn-success" onclick="searchTop10()">Top 10 for User</button>
+                <button class="btn btn-warning" onclick="searchLast30()">Last 30 Days for User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transaction Details by ID -->
+    <div class="card" id="txnDetailCard" style="display:none">
+        <div class="card-header"><h2 class="card-title">📋 Transaction Details</h2><button class="btn btn-secondary" onclick="document.getElementById('txnDetailCard').style.display='none'">Close</button></div>
+        <div id="txnDetailContent"></div>
+    </div>
+
+    <!-- Recent Transactions Table -->
+    <div class="card">
+        <div class="card-header"><h2 class="card-title">💳 Recent Transactions</h2><button class="btn btn-secondary" onclick="refreshFromDB()">Refresh</button></div>
         <div class="table-container">
             <table>
-                <thead>
-                <tr>
-                    <th>Txn ID</th>
-                    <th>User ID</th>
-                    <th>Amount</th>
-                    <th>Risk Score</th>
-                    <th>Risk Level</th>
-                    <th>Status</th>
-                    <th>Time</th>
-                </tr>
-                </thead>
-                <tbody id="transactionTable">
-                <tr>
-                    <td colspan="7">
-                        <div class="loading">
-                            <div class="spinner"></div>
-                            <p>Loading transactions...</p>
-                        </div>
-                    </td>
-                </tr>
-                </tbody>
+                <thead><tr><th>Txn ID</th><th>User ID</th><th>Amount</th><th>Risk Score</th><th>Risk Level</th><th>Status</th><th>Time</th></tr></thead>
+                <tbody id="transactionTable"><tr><td colspan="7"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></td></tr></tbody>
             </table>
         </div>
     </div>
 </div>
 
 <script>
-    // Configuration
     const API_BASE = 'http://localhost:8080';
-    const WS_URL = 'http://localhost:8080/ws-sockjs';
-
-    // State
     let stompClient = null;
     let alertsData = [];
     let riskChart = null;
-    let stats = {
-        highRisk: 0,
-        totalTxn: 0,
-        avgRisk: 0,
-        flaggedRate: 0
-    };
+    let stats = { highRisk: 0, totalTxn: 0, avgRisk: 0, flaggedRate: 0 };
 
-    // ──────────────────────────────────────────────
-    // INITIALIZATION — always fetch from DB first
-    // ──────────────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', () => {
-        initWebSocket();
-        initChart();
-        loadHistoryFromDB();
-    });
+    document.addEventListener('DOMContentLoaded', () => { initWebSocket(); initChart(); loadHistoryFromDB(); });
 
-    /**
-     * Fetch all past risk‑assessments from the backend so the
-     * dashboard survives full page refreshes / new tabs.
-     */
     async function loadHistoryFromDB() {
         try {
             const resp = await fetch(API_BASE + '/dashboard/history');
             if (resp.ok) {
                 const history = await resp.json();
-                if (history.length > 0) {
-                    alertsData = history;
-                    rebuildStatsFromData();
-                    refreshStatsDisplay();
-                    updateChart();
-                    restoreAlerts();
-                    updateRecentTable();
-                    return;
-                }
+                if (history.length > 0) { alertsData = history; rebuildUI(); return; }
             }
-        } catch (e) {
-            console.warn('Could not load history from backend, starting fresh:', e);
-        }
-        // Nothing in DB yet — show empty state
+        } catch (e) { console.warn('Could not load history:', e); }
         showEmptyTable();
     }
 
-    /**
-     * Manual refresh button — re-fetches everything from the DB.
-     */
     async function refreshFromDB() {
         alertsData = [];
         stats = { highRisk: 0, totalTxn: 0, avgRisk: 0, flaggedRate: 0 };
-        refreshStatsDisplay();
-        updateChart();
-        const feed = document.getElementById('alertsFeed');
-        feed.innerHTML = '<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';
-        const tbody = document.getElementById('transactionTable');
-        tbody.innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></td></tr>';
+        refreshStatsDisplay(); updateChart();
+        document.getElementById('alertsFeed').innerHTML = '<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';
+        document.getElementById('transactionTable').innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></td></tr>';
         await loadHistoryFromDB();
     }
 
-    // ──────────────────────────────────────────────
-    // WEBSOCKET
-    // ──────────────────────────────────────────────
+    function rebuildUI() { rebuildStatsFromData(); refreshStatsDisplay(); updateChart(); restoreAlerts(); updateRecentTable(); }
+
+    // WebSocket
     function initWebSocket() {
-        const socket = new SockJS(WS_URL);
+        const socket = new SockJS(API_BASE + '/ws-sockjs');
         stompClient = Stomp.over(socket);
         stompClient.debug = null;
-
         stompClient.connect({},
-            (frame) => {
-                updateConnectionStatus(true);
-                console.log('Connected:', frame);
-
-                stompClient.subscribe('/dashboard/alerts', (message) => {
-                    const alertMsg = JSON.parse(message.body);
-                    handleNewAlert(alertMsg);
-                });
-            },
-            (error) => {
-                updateConnectionStatus(false);
-                console.error('Connection error:', error);
-                setTimeout(initWebSocket, 5000);
-            }
+            (frame) => { updateConnectionStatus(true); stompClient.subscribe('/dashboard/alerts', (msg) => handleNewAlert(JSON.parse(msg.body))); },
+            (error) => { updateConnectionStatus(false); setTimeout(initWebSocket, 5000); }
         );
     }
 
     function updateConnectionStatus(connected) {
-        const dot = document.getElementById('statusDot');
-        const text = document.getElementById('statusText');
-        if (connected) {
-            dot.classList.add('connected');
-            text.textContent = 'Connected';
-        } else {
-            dot.classList.remove('connected');
-            text.textContent = 'Disconnected';
-        }
+        document.getElementById('statusDot').classList.toggle('connected', connected);
+        document.getElementById('statusText').textContent = connected ? 'Connected' : 'Disconnected';
     }
 
-    // ──────────────────────────────────────────────
-    // NEW ALERT (real-time via WebSocket)
-    // ──────────────────────────────────────────────
     function handleNewAlert(alertMsg) {
-        console.log('New alert:', alertMsg);
-
+        if (alertsData.some(a => a.transactionId === alertMsg.transactionId)) return;
+        alertMsg._receivedAt = Date.now();
         alertsData.unshift(alertMsg);
-        if (alertsData.length > 100) alertsData.pop();
-
-        // Incremental stats update
-        stats.totalTxn++;
-        if ((alertMsg.fraudPossibility || '').toUpperCase() === 'HIGH') {
-            stats.highRisk++;
-        }
-        recalcAverages();
-        refreshStatsDisplay();
-
-        renderAlert(alertMsg);
-        updateChart();
-        updateRecentTable();
+        if (alertsData.length > 200) alertsData.pop();
+        rebuildStatsFromData(); refreshStatsDisplay(); renderAlert(alertMsg); updateChart(); updateRecentTable();
     }
 
-    // ──────────────────────────────────────────────
-    // RENDER ALERTS
-    // ──────────────────────────────────────────────
-    function renderAlert(alertMsg) {
+    // Alerts rendering
+    function renderAlert(a) {
         const feed = document.getElementById('alertsFeed');
-
-        // Remove empty / loading state
-        const emptyState = feed.querySelector('.empty-state');
-        if (emptyState) emptyState.remove();
-        const loadingState = feed.querySelector('.loading');
-        if (loadingState) loadingState.remove();
-
-        const riskLevel = (alertMsg.fraudPossibility || 'MEDIUM').toUpperCase();
-        const riskClass = riskLevel.toLowerCase();
-        const riskScore = alertMsg.overallScore || 0;
-        const userId = alertMsg.userId != null ? alertMsg.userId : 'N/A';
-        const amount = alertMsg.amount != null ? Number(alertMsg.amount).toFixed(2) : '0.00';
-        const mlScore = alertMsg.mlScore != null ? Number(alertMsg.mlScore).toFixed(1) : 'N/A';
-
-        const alertDiv = document.createElement('div');
-        alertDiv.className = `alert-item ${riskClass}`;
-        alertDiv.innerHTML = `
-            <div class="alert-header">
-                <span class="alert-risk">${riskLevel} RISK - ${Number(riskScore).toFixed(1)}%</span>
-                <span class="alert-time">${new Date().toLocaleTimeString()}</span>
-            </div>
-            <div class="alert-details">
-                Transaction ID: ${alertMsg.transactionId || 'N/A'} | User ID: ${userId}
-                <br>
-                Amount: ₹${amount} | ML Score: ${mlScore}%
-            </div>
-            ${alertMsg.triggeredRules && alertMsg.triggeredRules.length > 0 ? `
-            <div class="alert-rules">
-                ${alertMsg.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
-            </div>
-            ` : ''}
-        `;
-
-        feed.insertBefore(alertDiv, feed.firstChild);
-
-        // Keep only last 30 alerts visible
-        while (feed.children.length > 30) {
-            feed.removeChild(feed.lastChild);
-        }
+        const empty = feed.querySelector('.empty-state'); if (empty) empty.remove();
+        const loading = feed.querySelector('.loading'); if (loading) loading.remove();
+        feed.insertBefore(createAlertDiv(a, new Date().toLocaleTimeString()), feed.firstChild);
+        while (feed.children.length > 30) feed.removeChild(feed.lastChild);
     }
 
     function restoreAlerts() {
-        if (alertsData.length === 0) return;
-        const feed = document.getElementById('alertsFeed');
-        feed.innerHTML = ''; // clear loading / empty
-
-        alertsData.slice(0, 30).forEach(alertMsg => {
-            const riskLevel = (alertMsg.fraudPossibility || 'MEDIUM').toUpperCase();
-            const riskClass = riskLevel.toLowerCase();
-            const riskScore = alertMsg.overallScore || 0;
-            const userId = alertMsg.userId != null ? alertMsg.userId : 'N/A';
-            const amount = alertMsg.amount != null ? Number(alertMsg.amount).toFixed(2) : '0.00';
-            const mlScore = alertMsg.mlScore != null ? Number(alertMsg.mlScore).toFixed(1) : 'N/A';
-
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert-item ${riskClass}`;
-            alertDiv.innerHTML = `
-                <div class="alert-header">
-                    <span class="alert-risk">${riskLevel} RISK - ${Number(riskScore).toFixed(1)}%</span>
-                    <span class="alert-time">history</span>
-                </div>
-                <div class="alert-details">
-                    Transaction ID: ${alertMsg.transactionId || 'N/A'} | User ID: ${userId}
-                    <br>
-                    Amount: ₹${amount} | ML Score: ${mlScore}%
-                </div>
-                ${alertMsg.triggeredRules && alertMsg.triggeredRules.length > 0 ? `
-                <div class="alert-rules">
-                    ${alertMsg.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
-                </div>
-                ` : ''}
-            `;
-            feed.appendChild(alertDiv);
-        });
+        const feed = document.getElementById('alertsFeed'); feed.innerHTML = '';
+        if (alertsData.length === 0) { feed.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Waiting for fraud alerts...</p></div>'; return; }
+        alertsData.slice(0, 30).forEach(a => feed.appendChild(createAlertDiv(a, 'history')));
     }
 
-    function clearAlerts() {
-        // Only clears the UI view, DB data is preserved
-        const feed = document.getElementById('alertsFeed');
-        feed.innerHTML = `
-            <div class="empty-state">
-                <div class="empty-state-icon">📊</div>
-                <p>Alerts cleared. Waiting for new alerts...</p>
-            </div>
-        `;
+    function createAlertDiv(a, timeLabel) {
+        const level = (a.fraudPossibility || 'MEDIUM').toUpperCase();
+        const div = document.createElement('div');
+        div.className = `alert-item ${level.toLowerCase()}`;
+        div.innerHTML = `
+            <div class="alert-header"><span class="alert-risk">${level} RISK - ${(a.overallScore||0).toFixed(1)}%</span><span class="alert-time">${timeLabel}</span></div>
+            <div class="alert-details">Transaction ID: ${a.transactionId||'N/A'} | User ID: ${a.userId!=null?a.userId:'N/A'}<br>Amount: ₹${(a.amount||0).toFixed(2)} | ML Score: ${a.mlScore!=null?a.mlScore.toFixed(1):'N/A'}%</div>
+            ${a.triggeredRules && a.triggeredRules.length ? `<div class="alert-rules">${a.triggeredRules.map(r=>`<span class="rule-badge">${r}</span>`).join('')}</div>` : ''}`;
+        return div;
     }
 
-    // ──────────────────────────────────────────────
-    // STATS
-    // ──────────────────────────────────────────────
+    function clearAlerts() { document.getElementById('alertsFeed').innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Alerts cleared. Waiting for new alerts...</p></div>'; }
+
+    // Stats
     function rebuildStatsFromData() {
         stats.totalTxn = alertsData.length;
-        stats.highRisk = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
-        recalcAverages();
-    }
-
-    function recalcAverages() {
+        stats.highRisk = alertsData.filter(a => (a.fraudPossibility||'').toUpperCase() === 'HIGH').length;
         if (alertsData.length > 0) {
-            const totalRisk = alertsData.reduce((sum, a) => sum + (a.overallScore || 0), 0);
-            stats.avgRisk = totalRisk / alertsData.length;
-            const flaggedCount = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
-            stats.flaggedRate = (flaggedCount / alertsData.length) * 100;
-        } else {
-            stats.avgRisk = 0;
-            stats.flaggedRate = 0;
-        }
+            stats.avgRisk = alertsData.reduce((s, a) => s + (a.overallScore || 0), 0) / alertsData.length;
+            stats.flaggedRate = (stats.highRisk / alertsData.length) * 100;
+        } else { stats.avgRisk = 0; stats.flaggedRate = 0; }
     }
 
     function refreshStatsDisplay() {
@@ -705,156 +265,153 @@
         document.getElementById('statFlaggedRate').textContent = stats.flaggedRate.toFixed(1) + '%';
     }
 
-    // ──────────────────────────────────────────────
-    // CHART
-    // ──────────────────────────────────────────────
+    // Chart
     function initChart() {
-        const ctx = document.getElementById('riskChart').getContext('2d');
-        riskChart = new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Low Risk', 'Medium Risk', 'High Risk'],
-                datasets: [{
-                    data: [0, 0, 0],
-                    backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
+        riskChart = new Chart(document.getElementById('riskChart').getContext('2d'), {
+            type: 'doughnut', data: { labels: ['Low Risk','Medium Risk','High Risk'], datasets: [{ data: [0,0,0], backgroundColor: ['#10b981','#f59e0b','#ef4444'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
         });
     }
 
     function updateChart() {
-        const low = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'LOW').length;
-        const medium = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'MEDIUM').length;
-        const high = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
-        riskChart.data.datasets[0].data = [low, medium, high];
-        riskChart.update();
+        const l = alertsData.filter(a => (a.fraudPossibility||'').toUpperCase()==='LOW').length;
+        const m = alertsData.filter(a => (a.fraudPossibility||'').toUpperCase()==='MEDIUM').length;
+        const h = alertsData.filter(a => (a.fraudPossibility||'').toUpperCase()==='HIGH').length;
+        riskChart.data.datasets[0].data = [l, m, h]; riskChart.update();
     }
 
-    // ──────────────────────────────────────────────
-    // RECENT TRANSACTIONS TABLE
-    // ──────────────────────────────────────────────
+    // Recent table
     function updateRecentTable() {
         const tbody = document.getElementById('transactionTable');
-        if (alertsData.length === 0) {
-            showEmptyTable();
-            return;
-        }
-
+        if (alertsData.length === 0) { showEmptyTable(); return; }
         tbody.innerHTML = alertsData.slice(0, 20).map(a => {
-            const riskLevel = (a.fraudPossibility || 'MEDIUM').toUpperCase();
-            const userId = a.userId != null ? a.userId : 'N/A';
-            const amount = a.amount != null ? Number(a.amount).toFixed(2) : '0.00';
-            const score = a.overallScore != null ? Number(a.overallScore).toFixed(1) : '0';
-            const isFlagged = riskLevel === 'HIGH';
-
-            return `
-            <tr>
-                <td>${a.transactionId || 'N/A'}</td>
-                <td>${userId}</td>
-                <td>₹${amount}</td>
-                <td>${score}%</td>
-                <td>
-                    <span class="badge badge-${riskLevel.toLowerCase()}">
-                        ${riskLevel}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge ${isFlagged ? 'badge-flagged' : 'badge-unflagged'}">
-                        ${isFlagged ? 'FLAGGED' : 'UNFLAGGED'}
-                    </span>
-                </td>
-                <td>${a.transactionId || '-'}</td>
-            </tr>
-            `;
+            const level = (a.fraudPossibility || 'N/A').toUpperCase();
+            const flagged = level === 'HIGH';
+            return `<tr><td>${a.transactionId||'N/A'}</td><td>${a.userId!=null?a.userId:'N/A'}</td><td>₹${(a.amount||0).toFixed(2)}</td>
+                <td>${a.overallScore!=null?a.overallScore.toFixed(1)+'%':'N/A'}</td>
+                <td><span class="badge badge-${level.toLowerCase()}">${level}</span></td>
+                <td><span class="badge ${flagged?'badge-flagged':'badge-unflagged'}">${flagged?'FLAGGED':'UNFLAGGED'}</span></td>
+                <td>${a._receivedAt ? new Date(a._receivedAt).toLocaleString() : '-'}</td></tr>`;
         }).join('');
     }
 
     function showEmptyTable() {
-        const tbody = document.getElementById('transactionTable');
-        tbody.innerHTML = `
-            <tr>
-                <td colspan="7">
-                    <div class="empty-state">
-                        <div class="empty-state-icon">📭</div>
-                        <p>No transactions yet. Submit a transaction to see data here.</p>
-                    </div>
-                </td>
-            </tr>
-        `;
+        document.getElementById('transactionTable').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-icon">📭</div><p>No transactions yet.</p></div></td></tr>';
     }
 
-    // ──────────────────────────────────────────────
-    // SEARCH (existing REST API)
-    // ────────────��─────────────────────────────────
-    async function searchTransactions() {
-        const userId = document.getElementById('userIdInput').value;
-        const txnId = document.getElementById('txnIdInput').value;
-
-        if (!userId && !txnId) {
-            alert('Please enter User ID or Transaction ID');
-            return;
-        }
-
+    // ========== USER DETAILS LOOKUP ==========
+    async function lookupUser() {
+        const uid = document.getElementById('userLookupId').value;
+        if (!uid) { alert('Please enter a User ID'); return; }
+        const panel = document.getElementById('userDetailPanel');
+        panel.style.display = 'block';
+        panel.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading user...</p></div>';
         try {
-            let url;
-            if (txnId) {
-                url = `${API_BASE}/transaction/details?transactionId=${txnId}`;
-            } else {
-                url = `${API_BASE}/transaction/top10ForUser?userId=${userId}`;
+            const resp = await fetch(`${API_BASE}/users/userdetails?user_id=${uid}`);
+            if (!resp.ok) { const t = await resp.text(); throw new Error(t); }
+            const u = await resp.json();
+            let createdAt = 'N/A';
+            if (u.createdAt) {
+                if (Array.isArray(u.createdAt)) { const [y,mo,d,h,mi,s] = u.createdAt; createdAt = new Date(y,mo-1,d,h||0,mi||0,s||0).toLocaleString(); }
+                else { createdAt = new Date(u.createdAt).toLocaleString(); }
             }
-
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Transaction not found');
-            }
-
-            const data = await response.json();
-            displaySearchResults(Array.isArray(data) ? data : [data]);
-        } catch (error) {
-            alert('Error: ' + error.message);
-        }
+            panel.innerHTML = `<div class="detail-grid">
+                <div class="detail-item"><div class="detail-label">User ID</div><div class="detail-value">${u.userId}</div></div>
+                <div class="detail-item"><div class="detail-label">Name</div><div class="detail-value">${u.name||'N/A'}</div></div>
+                <div class="detail-item"><div class="detail-label">Email</div><div class="detail-value">${u.email||'N/A'}</div></div>
+                <div class="detail-item"><div class="detail-label">Phone</div><div class="detail-value">${u.phoneNumber||'N/A'}</div></div>
+                <div class="detail-item"><div class="detail-label">Home Location</div><div class="detail-value">${u.homeLocation||'N/A'}</div></div>
+                <div class="detail-item"><div class="detail-label">Created At</div><div class="detail-value">${createdAt}</div></div>
+            </div>`;
+        } catch (e) { panel.innerHTML = `<p style="color:var(--danger)">Error: ${e.message}</p>`; }
     }
 
-    function displaySearchResults(transactions) {
-        const tbody = document.getElementById('transactionTable');
+    // ========== TRANSACTION SEARCH ==========
+    async function searchByTxnId() {
+        const txnId = document.getElementById('txnIdInput').value;
+        if (!txnId) { alert('Please enter a Transaction ID'); return; }
+        try {
+            const resp = await fetch(`${API_BASE}/transaction/details?transactionId=${txnId}`);
+            if (!resp.ok) { const t = await resp.text(); throw new Error(t); }
+            const txn = await resp.json();
+            showTxnDetail(txn);
+            await displaySearchResults([txn]);
+        } catch (e) { alert('Error: ' + e.message); }
+    }
 
-        tbody.innerHTML = transactions.map(txn => {
-            // Handle LocalDateTime returned as array [year, month, day, hour, min, sec, nano]
+    async function searchTop10() {
+        const uid = document.getElementById('userIdInput').value;
+        if (!uid) { alert('Please enter a User ID'); return; }
+        try {
+            const resp = await fetch(`${API_BASE}/transaction/top10ForUser?userId=${uid}`);
+            if (!resp.ok) { const t = await resp.text(); throw new Error(t); }
+            const data = await resp.json();
+            await displaySearchResults(Array.isArray(data) ? data : [data]);
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    async function searchLast30() {
+        const uid = document.getElementById('userIdInput').value;
+        if (!uid) { alert('Please enter a User ID'); return; }
+        try {
+            const resp = await fetch(`${API_BASE}/transaction/Last30ForUser?userId=${uid}`);
+            if (!resp.ok) { const t = await resp.text(); throw new Error(t); }
+            const data = await resp.json();
+            await displaySearchResults(Array.isArray(data) ? data : [data]);
+        } catch (e) { alert('Error: ' + e.message); }
+    }
+
+    function showTxnDetail(txn) {
+        const card = document.getElementById('txnDetailCard'); card.style.display = 'block';
+        let timeStr = 'N/A';
+        if (txn.timeOfTransaction) {
+            if (Array.isArray(txn.timeOfTransaction)) { const [y,mo,d,h,mi,s]=txn.timeOfTransaction; timeStr=new Date(y,mo-1,d,h||0,mi||0,s||0).toLocaleString(); }
+            else { timeStr = new Date(txn.timeOfTransaction).toLocaleString(); }
+        }
+        document.getElementById('txnDetailContent').innerHTML = `<div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">Transaction ID</div><div class="detail-value">${txn.transactionId}</div></div>
+            <div class="detail-item"><div class="detail-label">User ID</div><div class="detail-value">${txn.userId}</div></div>
+            <div class="detail-item"><div class="detail-label">Amount</div><div class="detail-value">₹${(txn.amount||0).toFixed(2)}</div></div>
+            <div class="detail-item"><div class="detail-label">Merchant ID</div><div class="detail-value">${txn.merchantId||'N/A'}</div></div>
+            <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value">${txn.status||'UNFLAGGED'}</div></div>
+            <div class="detail-item"><div class="detail-label">Location</div><div class="detail-value">${txn.userLocation||'N/A'}</div></div>
+            <div class="detail-item"><div class="detail-label">MCC</div><div class="detail-value">${txn.merchantCategoryCode||'N/A'}</div></div>
+            <div class="detail-item"><div class="detail-label">Cross Border</div><div class="detail-value">${txn.crossBorder?'Yes':'No'}</div></div>
+            <div class="detail-item"><div class="detail-label">Device</div><div class="detail-value">${txn.deviceFingerPrint||'N/A'}</div></div>
+            <div class="detail-item"><div class="detail-label">Time</div><div class="detail-value">${timeStr}</div></div>
+        </div>`;
+    }
+
+    async function displaySearchResults(transactions) {
+        const tbody = document.getElementById('transactionTable');
+        // Enrich each with risk data
+        const enriched = await Promise.all(transactions.map(async txn => {
+            try {
+                const r = await fetch(`${API_BASE}/dashboard/riskByTransaction?transactionId=${txn.transactionId}`);
+                if (r.ok) {
+                    const rd = await r.json();
+                    txn._riskScore = rd.overallScore;
+                    txn._riskLevel = rd.fraudPossibility;
+                    txn._mlScore = rd.mlScore;
+                    txn._triggeredRules = rd.triggeredRules;
+                }
+            } catch (e) { /* risk not available yet */ }
+            return txn;
+        }));
+        tbody.innerHTML = enriched.map(txn => {
             let timeStr = 'N/A';
             if (txn.timeOfTransaction) {
-                if (Array.isArray(txn.timeOfTransaction)) {
-                    const [y, mo, d, h, mi, s] = txn.timeOfTransaction;
-                    timeStr = new Date(y, mo - 1, d, h || 0, mi || 0, s || 0).toLocaleString();
-                } else {
-                    timeStr = new Date(txn.timeOfTransaction).toLocaleString();
-                }
+                if (Array.isArray(txn.timeOfTransaction)) { const [y,mo,d,h,mi,s]=txn.timeOfTransaction; timeStr=new Date(y,mo-1,d,h||0,mi||0,s||0).toLocaleString(); }
+                else { timeStr = new Date(txn.timeOfTransaction).toLocaleString(); }
             }
-
-            return `
-            <tr>
-                <td>${txn.transactionId}</td>
-                <td>${txn.userId}</td>
-                <td>₹${txn.amount != null ? Number(txn.amount).toFixed(2) : '0.00'}</td>
-                <td>N/A</td>
-                <td>N/A</td>
-                <td>
-                    <span class="badge ${txn.status === 'FLAGGED' ? 'badge-flagged' : 'badge-unflagged'}">
-                        ${txn.status || 'UNFLAGGED'}
-                    </span>
-                </td>
-                <td>${timeStr}</td>
-            </tr>
-            `;
+            const score = txn._riskScore!=null ? txn._riskScore.toFixed(1)+'%' : 'Pending';
+            const level = txn._riskLevel || 'Pending';
+            const badgeClass = level!=='Pending' ? `badge badge-${level.toLowerCase()}` : '';
+            const isFlagged = txn.status === 'FLAGGED';
+            return `<tr><td>${txn.transactionId}</td><td>${txn.userId}</td><td>₹${(txn.amount||0).toFixed(2)}</td>
+                <td>${score}</td><td>${level!=='Pending'?`<span class="${badgeClass}">${level}</span>`:level}</td>
+                <td><span class="badge ${isFlagged?'badge-flagged':'badge-unflagged'}">${txn.status||'UNFLAGGED'}</span></td>
+                <td>${timeStr}</td></tr>`;
         }).join('');
     }
 </script>

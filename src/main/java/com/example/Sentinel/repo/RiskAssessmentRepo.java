@@ -10,7 +10,9 @@ import java.util.Optional;
 
 @Repository
 public interface RiskAssessmentRepo extends JpaRepository<RiskAssessment,Long> {
+    @EntityGraph(attributePaths = {"transaction", "transaction.users"})
     Optional<RiskAssessment> findByTransaction_TransactionId(Long aLong);
+
     @EntityGraph(attributePaths = {"transaction", "transaction.users"})
     List<RiskAssessment> findAllByOrderByIdDesc();
 }
