@@ -1,4 +1,4 @@
-# 🛡️ Sentinel — Real-Time Fraud Detection System
+# 🛡️ Sentinel — Real-Time Transaction Anomaly Scoring engine
 
 <div align="center">
 
