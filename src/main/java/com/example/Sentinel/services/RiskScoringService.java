@@ -88,6 +88,8 @@ public class RiskScoringService {
         RiskAssessmentDto dto = new RiskAssessmentDto();
         dto.setRequestId(requestId);
         dto.setTransactionId(risk.getTransaction().getTransactionId());
+        dto.setUserId(risk.getTransaction().getUsers().getUserId());
+        dto.setAmount(risk.getTransaction().getAmount());
         dto.setAmountScore(risk.getAmountScore());
         dto.setLocationScore(risk.getLocationScore());
         dto.setMerchantCategoryScore(risk.getMerchantCategoryScore());

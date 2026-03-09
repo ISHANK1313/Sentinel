@@ -107,7 +107,7 @@ class FraudDetectionModel:
         """
         # Sigmoid transformation
         normalized = -anomaly_score
-        probability = 1 / (1 + np.exp(-5 * normalized))
+        probability = 1 / (1 + np.exp(-3 * normalized))
 
         return np.clip(probability, 0, 1)
 

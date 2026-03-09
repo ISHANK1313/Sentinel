@@ -121,7 +121,7 @@ public class AggregatorService {
         if (ruleScore != null && mlScore != null) {
             // Rule engine score is already weighted (max ~100),
             // ML score is 0-100. Blend 70/30 so rules dominate.
-            finalScore = (ruleScore * 0.7) + (mlScore * 0.3);
+            finalScore = (ruleScore * 0.8) + (mlScore * 0.2);
         } else if (ruleScore != null) {
             finalScore = ruleScore;
         } else {
@@ -157,7 +157,6 @@ public class AggregatorService {
     private List<String> determineTriggeredRules(RiskAssessment risk) {
 
         List<String> rules = new ArrayList<>();
-
         if (risk.getAmountScore() != null && risk.getAmountScore() >= 10)
             rules.add("Amount Rule");
 
@@ -175,6 +174,16 @@ public class AggregatorService {
 
         if (risk.getMlScore() != null && risk.getMlScore() >= 60)
             rules.add("ML Model Alert");
+        if(risk.getCrossBorderScore()!=null&&risk.getCrossBorderScore()>=10)
+            rules.add("Cross Border Rule");
+        if(risk.getDeviceFingerPrintScore()!=null&&risk.getDeviceFingerPrintScore()>=5)
+            rules.add("Device Finger Print Rule");
+        if(risk.getTimeScore()!=null&&risk.getTimeScore()>=15)
+            rules.add("Time Of Transaction Rule");
+        if(risk.getSequenceScore()!=null&&risk.getSequenceScore()>=10)
+             rules.add("Sequence Rule");
+        if(risk.getMerchantCategoryScore()!=null&&risk.getMerchantCategoryScore()>=15)
+            rules.add("Merchant Category Rule");
 
         return rules;
     }

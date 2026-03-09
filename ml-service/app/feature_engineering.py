@@ -52,7 +52,7 @@ class FeatureEngineer:
         # Initialize ALL features (schema compliance)
         features = {
             'amount_zscore': 0.0,
-            'amount_percentile': 50.0,
+            'amount_percentile': 30.0,
             'velocity_5min': 0,
             'velocity_1hr': 0,
             'velocity_24hr': 0,
@@ -61,9 +61,9 @@ class FeatureEngineer:
             'unique_merchants_24hr': 0,
             'merchant_diversity_score': 0.0,
             'device_seen_before': 0,
-            'device_novelty_score': 0.5,
+            'device_novelty_score': 0.0,
             'location_seen_before': 0,
-            'location_novelty_score': 0.5,
+            'location_novelty_score': 0.0,
             'hour_of_day': 12,
             'is_unusual_hour': 0,
             'hour_deviation_score': 0.0,

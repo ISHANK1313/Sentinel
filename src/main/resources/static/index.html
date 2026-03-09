@@ -429,7 +429,7 @@
     <div class="card">
         <div class="card-header">
             <h2 class="card-title">💳 Recent Transactions</h2>
-            <button class="btn btn-secondary" onclick="loadRecentTransactions()">Refresh</button>
+            <button class="btn btn-secondary" onclick="refreshFromDB()">Refresh</button>
         </div>
         <div class="table-container">
             <table>
@@ -464,49 +464,83 @@
     const API_BASE = 'http://localhost:8080';
     const WS_URL = 'http://localhost:8080/ws-sockjs';
 
-    // State — alertsData now survives refresh via sessionStorage
+    // State
     let stompClient = null;
-    let alertsData = JSON.parse(sessionStorage.getItem('sentinelAlerts') || '[]');
+    let alertsData = [];
     let riskChart = null;
-    let stats = JSON.parse(sessionStorage.getItem('sentinelStats') || JSON.stringify({
+    let stats = {
         highRisk: 0,
         totalTxn: 0,
         avgRisk: 0,
         flaggedRate: 0
-    }));
+    };
 
-    function persistState() {
-        sessionStorage.setItem('sentinelAlerts', JSON.stringify(alertsData));
-        sessionStorage.setItem('sentinelStats', JSON.stringify(stats));
-    }
-
-    // Initialize
+    // ──────────────────────────────────────────────
+    // INITIALIZATION — always fetch from DB first
+    // ──────────────────────────────────────────────
     document.addEventListener('DOMContentLoaded', () => {
         initWebSocket();
         initChart();
-        // Restore stats display from sessionStorage
-        refreshStatsDisplay();
-        updateChart();
-        // Restore alerts feed from sessionStorage
-        restoreAlerts();
-        loadRecentTransactions();
+        loadHistoryFromDB();
     });
 
-    // WebSocket Connection
+    /**
+     * Fetch all past risk‑assessments from the backend so the
+     * dashboard survives full page refreshes / new tabs.
+     */
+    async function loadHistoryFromDB() {
+        try {
+            const resp = await fetch(API_BASE + '/dashboard/history');
+            if (resp.ok) {
+                const history = await resp.json();
+                if (history.length > 0) {
+                    alertsData = history;
+                    rebuildStatsFromData();
+                    refreshStatsDisplay();
+                    updateChart();
+                    restoreAlerts();
+                    updateRecentTable();
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn('Could not load history from backend, starting fresh:', e);
+        }
+        // Nothing in DB yet — show empty state
+        showEmptyTable();
+    }
+
+    /**
+     * Manual refresh button — re-fetches everything from the DB.
+     */
+    async function refreshFromDB() {
+        alertsData = [];
+        stats = { highRisk: 0, totalTxn: 0, avgRisk: 0, flaggedRate: 0 };
+        refreshStatsDisplay();
+        updateChart();
+        const feed = document.getElementById('alertsFeed');
+        feed.innerHTML = '<div class="loading"><div class="spinner"></div><p>Refreshing...</p></div>';
+        const tbody = document.getElementById('transactionTable');
+        tbody.innerHTML = '<tr><td colspan="7"><div class="loading"><div class="spinner"></div><p>Loading...</p></div></td></tr>';
+        await loadHistoryFromDB();
+    }
+
+    // ──────────────────────────────────────────────
+    // WEBSOCKET
+    // ──────────────────────────────────────────────
     function initWebSocket() {
         const socket = new SockJS(WS_URL);
         stompClient = Stomp.over(socket);
-        stompClient.debug = null; // suppress noisy logs
+        stompClient.debug = null;
 
         stompClient.connect({},
             (frame) => {
                 updateConnectionStatus(true);
                 console.log('Connected:', frame);
 
-                // Subscribe to alerts
                 stompClient.subscribe('/dashboard/alerts', (message) => {
-                    const alert = JSON.parse(message.body);
-                    handleNewAlert(alert);
+                    const alertMsg = JSON.parse(message.body);
+                    handleNewAlert(alertMsg);
                 });
             },
             (error) => {
@@ -529,55 +563,70 @@
         }
     }
 
-    // Handle New Alert from WebSocket
-    function handleNewAlert(alert) {
-        console.log('New alert:', alert);
+    // ──────────────────────────────────────────────
+    // NEW ALERT (real-time via WebSocket)
+    // ──────────────────────────────────────────────
+    function handleNewAlert(alertMsg) {
+        console.log('New alert:', alertMsg);
 
-        alertsData.unshift(alert);
-        if (alertsData.length > 50) alertsData.pop();
+        alertsData.unshift(alertMsg);
+        if (alertsData.length > 100) alertsData.pop();
 
-        updateStats(alert);
-        renderAlert(alert);
+        // Incremental stats update
+        stats.totalTxn++;
+        if ((alertMsg.fraudPossibility || '').toUpperCase() === 'HIGH') {
+            stats.highRisk++;
+        }
+        recalcAverages();
+        refreshStatsDisplay();
+
+        renderAlert(alertMsg);
         updateChart();
         updateRecentTable();
-        persistState();
     }
 
-    function renderAlert(alert) {
+    // ──────────────────────────────────────────────
+    // RENDER ALERTS
+    // ──────────────────────────────────────────────
+    function renderAlert(alertMsg) {
         const feed = document.getElementById('alertsFeed');
 
-        // Remove empty state
+        // Remove empty / loading state
         const emptyState = feed.querySelector('.empty-state');
         if (emptyState) emptyState.remove();
+        const loadingState = feed.querySelector('.loading');
+        if (loadingState) loadingState.remove();
 
-        const riskLevel = alert.fraudPossibility || 'MEDIUM';
+        const riskLevel = (alertMsg.fraudPossibility || 'MEDIUM').toUpperCase();
         const riskClass = riskLevel.toLowerCase();
-        const riskScore = alert.overallScore || 0;
+        const riskScore = alertMsg.overallScore || 0;
+        const userId = alertMsg.userId != null ? alertMsg.userId : 'N/A';
+        const amount = alertMsg.amount != null ? Number(alertMsg.amount).toFixed(2) : '0.00';
+        const mlScore = alertMsg.mlScore != null ? Number(alertMsg.mlScore).toFixed(1) : 'N/A';
 
         const alertDiv = document.createElement('div');
         alertDiv.className = `alert-item ${riskClass}`;
         alertDiv.innerHTML = `
             <div class="alert-header">
-                <span class="alert-risk">${riskLevel} RISK - ${riskScore.toFixed(1)}%</span>
+                <span class="alert-risk">${riskLevel} RISK - ${Number(riskScore).toFixed(1)}%</span>
                 <span class="alert-time">${new Date().toLocaleTimeString()}</span>
             </div>
             <div class="alert-details">
-                Transaction ID: ${alert.transactionId || 'N/A'} | User ID: ${alert.userId || 'N/A'}
+                Transaction ID: ${alertMsg.transactionId || 'N/A'} | User ID: ${userId}
                 <br>
-                Amount: ₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'} |
-                ML Score: ${alert.mlScore != null ? alert.mlScore.toFixed(1) : 'N/A'}%
+                Amount: ₹${amount} | ML Score: ${mlScore}%
             </div>
-            ${alert.triggeredRules && alert.triggeredRules.length > 0 ? `
+            ${alertMsg.triggeredRules && alertMsg.triggeredRules.length > 0 ? `
             <div class="alert-rules">
-                ${alert.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
+                ${alertMsg.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
             </div>
             ` : ''}
         `;
 
         feed.insertBefore(alertDiv, feed.firstChild);
 
-        // Keep only last 20 alerts visible
-        while (feed.children.length > 20) {
+        // Keep only last 30 alerts visible
+        while (feed.children.length > 30) {
             feed.removeChild(feed.lastChild);
         }
     }
@@ -585,31 +634,31 @@
     function restoreAlerts() {
         if (alertsData.length === 0) return;
         const feed = document.getElementById('alertsFeed');
-        const emptyState = feed.querySelector('.empty-state');
-        if (emptyState) emptyState.remove();
+        feed.innerHTML = ''; // clear loading / empty
 
-        // Render stored alerts (most recent first, already sorted)
-        alertsData.slice(0, 20).forEach(alert => {
-            const riskLevel = alert.fraudPossibility || 'MEDIUM';
+        alertsData.slice(0, 30).forEach(alertMsg => {
+            const riskLevel = (alertMsg.fraudPossibility || 'MEDIUM').toUpperCase();
             const riskClass = riskLevel.toLowerCase();
-            const riskScore = alert.overallScore || 0;
+            const riskScore = alertMsg.overallScore || 0;
+            const userId = alertMsg.userId != null ? alertMsg.userId : 'N/A';
+            const amount = alertMsg.amount != null ? Number(alertMsg.amount).toFixed(2) : '0.00';
+            const mlScore = alertMsg.mlScore != null ? Number(alertMsg.mlScore).toFixed(1) : 'N/A';
 
             const alertDiv = document.createElement('div');
             alertDiv.className = `alert-item ${riskClass}`;
             alertDiv.innerHTML = `
                 <div class="alert-header">
-                    <span class="alert-risk">${riskLevel} RISK - ${riskScore.toFixed(1)}%</span>
-                    <span class="alert-time">restored</span>
+                    <span class="alert-risk">${riskLevel} RISK - ${Number(riskScore).toFixed(1)}%</span>
+                    <span class="alert-time">history</span>
                 </div>
                 <div class="alert-details">
-                    Transaction ID: ${alert.transactionId || 'N/A'} | User ID: ${alert.userId || 'N/A'}
+                    Transaction ID: ${alertMsg.transactionId || 'N/A'} | User ID: ${userId}
                     <br>
-                    Amount: ₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'} |
-                    ML Score: ${alert.mlScore != null ? alert.mlScore.toFixed(1) : 'N/A'}%
+                    Amount: ₹${amount} | ML Score: ${mlScore}%
                 </div>
-                ${alert.triggeredRules && alert.triggeredRules.length > 0 ? `
+                ${alertMsg.triggeredRules && alertMsg.triggeredRules.length > 0 ? `
                 <div class="alert-rules">
-                    ${alert.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
+                    ${alertMsg.triggeredRules.map(rule => `<span class="rule-badge">${rule}</span>`).join('')}
                 </div>
                 ` : ''}
             `;
@@ -618,9 +667,7 @@
     }
 
     function clearAlerts() {
-        alertsData = [];
-        stats = { highRisk: 0, totalTxn: 0, avgRisk: 0, flaggedRate: 0 };
-        persistState();
+        // Only clears the UI view, DB data is preserved
         const feed = document.getElementById('alertsFeed');
         feed.innerHTML = `
             <div class="empty-state">
@@ -628,30 +675,27 @@
                 <p>Alerts cleared. Waiting for new alerts...</p>
             </div>
         `;
-        refreshStatsDisplay();
-        updateChart();
     }
 
-    // Update Stats
-    function updateStats(newAlert = null) {
-        if (newAlert) {
-            stats.totalTxn++;
-            if (newAlert.fraudPossibility === 'HIGH') {
-                stats.highRisk++;
-            }
-        }
+    // ──────────────────────────────────────────────
+    // STATS
+    // ──────────────────────────────────────────────
+    function rebuildStatsFromData() {
+        stats.totalTxn = alertsData.length;
+        stats.highRisk = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
+        recalcAverages();
+    }
 
-        // Calculate average risk
+    function recalcAverages() {
         if (alertsData.length > 0) {
             const totalRisk = alertsData.reduce((sum, a) => sum + (a.overallScore || 0), 0);
             stats.avgRisk = totalRisk / alertsData.length;
+            const flaggedCount = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
+            stats.flaggedRate = (flaggedCount / alertsData.length) * 100;
+        } else {
+            stats.avgRisk = 0;
+            stats.flaggedRate = 0;
         }
-
-        // Calculate flagged rate
-        const flaggedCount = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
-        stats.flaggedRate = alertsData.length > 0 ? (flaggedCount / alertsData.length) * 100 : 0;
-
-        refreshStatsDisplay();
     }
 
     function refreshStatsDisplay() {
@@ -661,7 +705,9 @@
         document.getElementById('statFlaggedRate').textContent = stats.flaggedRate.toFixed(1) + '%';
     }
 
-    // Initialize Chart
+    // ──────────────────────────────────────────────
+    // CHART
+    // ──────────────────────────────────────────────
     function initChart() {
         const ctx = document.getElementById('riskChart').getContext('2d');
         riskChart = new Chart(ctx, {
@@ -685,49 +731,54 @@
     }
 
     function updateChart() {
-        const low = alertsData.filter(a => a.fraudPossibility === 'LOW').length;
-        const medium = alertsData.filter(a => a.fraudPossibility === 'MEDIUM').length;
-        const high = alertsData.filter(a => a.fraudPossibility === 'HIGH').length;
+        const low = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'LOW').length;
+        const medium = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'MEDIUM').length;
+        const high = alertsData.filter(a => (a.fraudPossibility || '').toUpperCase() === 'HIGH').length;
         riskChart.data.datasets[0].data = [low, medium, high];
         riskChart.update();
     }
 
-    // Update recent transactions table from in-memory alertsData
+    // ──────────────────────────────────────────────
+    // RECENT TRANSACTIONS TABLE
+    // ──────────────────────────────────────────────
     function updateRecentTable() {
         const tbody = document.getElementById('transactionTable');
-        if (alertsData.length === 0) return;
-
-        tbody.innerHTML = alertsData.slice(0, 10).map(alert => `
-            <tr>
-                <td>${alert.transactionId || 'N/A'}</td>
-                <td>${alert.userId || 'N/A'}</td>
-                <td>₹${alert.amount != null ? Number(alert.amount).toFixed(2) : '0.00'}</td>
-                <td>${alert.overallScore != null ? alert.overallScore.toFixed(1) : '0'}%</td>
-                <td>
-                    <span class="badge badge-${(alert.fraudPossibility || 'medium').toLowerCase()}">
-                        ${alert.fraudPossibility || 'MEDIUM'}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge ${alert.fraudPossibility === 'HIGH' ? 'badge-flagged' : 'badge-unflagged'}">
-                        ${alert.fraudPossibility === 'HIGH' ? 'FLAGGED' : 'UNFLAGGED'}
-                    </span>
-                </td>
-                <td>${new Date().toLocaleString()}</td>
-            </tr>
-        `).join('');
-    }
-
-    // Load Recent Transactions — uses alertsData (from sessionStorage) first,
-    // no heavy DB call needed
-    async function loadRecentTransactions() {
-        const tbody = document.getElementById('transactionTable');
-
-        if (alertsData.length > 0) {
-            updateRecentTable();
+        if (alertsData.length === 0) {
+            showEmptyTable();
             return;
         }
 
+        tbody.innerHTML = alertsData.slice(0, 20).map(a => {
+            const riskLevel = (a.fraudPossibility || 'MEDIUM').toUpperCase();
+            const userId = a.userId != null ? a.userId : 'N/A';
+            const amount = a.amount != null ? Number(a.amount).toFixed(2) : '0.00';
+            const score = a.overallScore != null ? Number(a.overallScore).toFixed(1) : '0';
+            const isFlagged = riskLevel === 'HIGH';
+
+            return `
+            <tr>
+                <td>${a.transactionId || 'N/A'}</td>
+                <td>${userId}</td>
+                <td>₹${amount}</td>
+                <td>${score}%</td>
+                <td>
+                    <span class="badge badge-${riskLevel.toLowerCase()}">
+                        ${riskLevel}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge ${isFlagged ? 'badge-flagged' : 'badge-unflagged'}">
+                        ${isFlagged ? 'FLAGGED' : 'UNFLAGGED'}
+                    </span>
+                </td>
+                <td>${a.transactionId || '-'}</td>
+            </tr>
+            `;
+        }).join('');
+    }
+
+    function showEmptyTable() {
+        const tbody = document.getElementById('transactionTable');
         tbody.innerHTML = `
             <tr>
                 <td colspan="7">
@@ -740,7 +791,9 @@
         `;
     }
 
-    // Search Transactions via existing REST API
+    // ──────────────────────────────────────────────
+    // SEARCH (existing REST API)
+    // ────────────��─────────────────────────────────
     async function searchTransactions() {
         const userId = document.getElementById('userIdInput').value;
         const txnId = document.getElementById('txnIdInput').value;
