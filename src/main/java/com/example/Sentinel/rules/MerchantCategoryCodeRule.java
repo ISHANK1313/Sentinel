@@ -7,26 +7,26 @@ import java.util.List;
 
 public class MerchantCategoryCodeRule {
     public Long calculateScore(List<Transaction> transactionList, Integer currentMerchantCode, MccRegistry registry){
-        if(transactionList==null||transactionList.size()<5){
+        if(transactionList==null||transactionList.size()<2){
             return 0L;
         }
         int percentage=score(transactionList,currentMerchantCode);
-         if(percentage>90){
-             return 0L;
-         }
-         else if(percentage>60){
-             return 5L;
-         }
-         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("LOW")){
-             return 5L;
-         }
-         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("MEDIUM")){
-             return 15L;
-         }
-         else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("HIGH")){
-             return 30L;
-         }
-         return 10L;
+        if(percentage>90){
+            return 0L;
+        }
+        else if(percentage>60){
+            return 5L;
+        }
+        else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("LOW")){
+            return 5L;
+        }
+        else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("MEDIUM")){
+            return 15L;
+        }
+        else if(registry.getRiskLevel(currentMerchantCode).equalsIgnoreCase("HIGH")){
+            return 30L;
+        }
+        return 10L;
 
     }
     private int score(List<Transaction> previousTransaction, Integer  currMerchCode){

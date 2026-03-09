@@ -40,7 +40,7 @@ public class RiskScoringService {
         StructuringRule structuringRule = new StructuringRule();
         BeneficiaryRule beneficiaryRule = new BeneficiaryRule();
 
-        // Compute each raw score (each rule returns 0..40 or similar range)
+
         risk.setAmountScore(amountRule.calculateScore(transactions, curr.getAmount()));
 
         risk.setLocationScore(userLocationRule.calculateScore(transactions, curr.getUserLocation()));
@@ -64,11 +64,6 @@ public class RiskScoringService {
         risk.setBeneficiaryScore(beneficiaryRule.calculateScore(
                 curr.getUsers().getUserId(), curr.getMerchantId(), redisTemplate));
 
-        // FIX: Weighted sum that produces a 0-100 range
-        // Each raw score is multiplied by its weight, then the result is scaled to 0-100
-        // Weights: Amount=0.20, Velocity=0.15, Location=0.10, MCC=0.10, Time=0.10,
-        //          CrossBorder=0.05, Device=0.10, Structuring=0.10, Beneficiary=0.10
-        // (Sequence is placeholder at 0)
         double weighted = 0.0;
         weighted += (double) risk.getAmountScore()           * 0.20;  // max 40*0.20 = 8
         weighted += (double) risk.getVelocityScore()         * 0.15;  // max 35*0.15 = 5.25
@@ -79,14 +74,34 @@ public class RiskScoringService {
         weighted += (double) risk.getDeviceFingerPrintScore()* 0.10;  // max 10*0.10 = 1
         weighted += (double) risk.getStructuringScore()      * 0.10;  // max 80*0.10 = 8
         weighted += (double) risk.getBeneficiaryScore()      * 0.10;  // max 30*0.10 = 3
-        // Theoretical max weighted ≈ 32.25
+// True max = 32.25
+        double scaledScore = (weighted / 32.25) * 100.0;
 
-        // Scale to 0-100 range. Max weighted is ~32, so multiply by ~3.1 to get 0-100
-        double overall = Math.min(weighted * 3.1, 100.0);
+// Penalty bonus: if 3+ rules fired with non-zero score, add a multi-rule boost
+        long nonZeroRules = countNonZeroRules(risk);
+        if (nonZeroRules >= 5) {
+            scaledScore = Math.min(scaledScore * 1.35, 100.0);
+        } else if (nonZeroRules >= 3) {
+            scaledScore = Math.min(scaledScore * 1.20, 100.0);
+        }
 
+        double overall = Math.min(scaledScore, 100.0);
         risk.setOverallScore(overall);
     }
 
+    private long countNonZeroRules(RiskAssessment risk) {
+        long count = 0;
+        if (risk.getAmountScore()            != null && risk.getAmountScore()            > 0) count++;
+        if (risk.getVelocityScore()          != null && risk.getVelocityScore()          > 0) count++;
+        if (risk.getLocationScore()          != null && risk.getLocationScore()          > 0) count++;
+        if (risk.getMerchantCategoryScore()  != null && risk.getMerchantCategoryScore()  > 0) count++;
+        if (risk.getTimeScore()              != null && risk.getTimeScore()              > 0) count++;
+        if (risk.getCrossBorderScore()       != null && risk.getCrossBorderScore()       > 0) count++;
+        if (risk.getDeviceFingerPrintScore() != null && risk.getDeviceFingerPrintScore() > 0) count++;
+        if (risk.getStructuringScore()       != null && risk.getStructuringScore()       > 0) count++;
+        if (risk.getBeneficiaryScore()       != null && risk.getBeneficiaryScore()       > 0) count++;
+        return count;
+    }
     private RiskAssessmentDto convertToDto(RiskAssessment risk, String requestId) {
         RiskAssessmentDto dto = new RiskAssessmentDto();
         dto.setRequestId(requestId);

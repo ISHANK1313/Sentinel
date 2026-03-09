@@ -110,9 +110,8 @@ public class AggregatorService {
         double finalScore;
 
         if (ruleScore != null && mlScore != null) {
-            // Both rule engine (0-100) and ML (0-100) available
-            // Blend: 60% rules, 40% ML
-            finalScore = (ruleScore * 0.6) + (mlScore * 0.4);
+
+            finalScore = (ruleScore * 0.75) + (mlScore * 0.25);
         } else if (ruleScore != null) {
             finalScore = ruleScore;
         } else {
@@ -128,10 +127,8 @@ public class AggregatorService {
         List<String> triggered = determineTriggeredRules(risk);
         risk.setTriggeredRules(triggered);
 
-        if (finalScore > 60) {
-            txn.setStatus("FLAGGED");
-            transactionRepo.save(txn);
-        }
+        txn.setStatus(finalScore > 50 ? "FLAGGED" : "UNFLAGGED");
+        transactionRepo.save(txn);
 
         riskAssessmentRepo.save(risk);
 
@@ -140,8 +137,8 @@ public class AggregatorService {
     }
 
     private String determineFraudLevel(double score) {
-        if (score <= 30) return "LOW";
-        if (score <= 60) return "MEDIUM";
+        if (score <= 35) return "LOW";
+        if (score <= 50) return "MEDIUM";
         return "HIGH";
     }
 
@@ -168,7 +165,7 @@ public class AggregatorService {
             rules.add("Time Of Transaction Rule");
         if (risk.getSequenceScore() != null && risk.getSequenceScore() >= 10)
             rules.add("Sequence Rule");
-        if (risk.getMerchantCategoryScore() != null && risk.getMerchantCategoryScore() >= 10)
+        if (risk.getMerchantCategoryScore() != null && risk.getMerchantCategoryScore() >= 5)
             rules.add("Merchant Category Rule");
 
         return rules;
